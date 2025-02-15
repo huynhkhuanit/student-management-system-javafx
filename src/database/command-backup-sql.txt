@@ -1,0 +1,4 @@
+mysqldump -u root -p student_system_database > "E:\DHV\do-an\java\do-an-cuoi-mon\src\database\backup_student_system_database.sql"
+
+Backup có database -> Sử dụng --databases
+mysqldump -u root -p --databases student_system_database > "E:\DHV\do-an\java\do-an-cuoi-mon\src\database\backup_student_system_database.sql"

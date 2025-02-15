@@ -1,0 +1,79 @@
+/* success */
+.bg-success {
+    -fx-background-color: #BAE8C8;
+    -fx-background-radius: 8px;
+} 
+
+.success {
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-color: #38A169;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+}
+
+.success-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: #38A169;
+    -fx-font-family: "Tahoma", sans-serif;
+}
+
+/* error */
+.bg-error {
+    -fx-background-color: #FBD4D4;
+    -fx-background-radius: 8px;
+} 
+
+.error {
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-color: #E53E3E;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+}
+
+.error-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: #E53E3E;
+    -fx-font-family: "Tahoma", sans-serif;
+}
+
+/* warning */
+.bg-warning {
+    -fx-background-color: #FEEBC8;
+    -fx-background-radius: 8px;
+} 
+
+.warning {
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-color: #D69E2E;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+}
+
+.warning-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: #D69E2E;
+    -fx-font-family: "Tahoma", sans-serif;
+}
+
+/* information */
+.bg-information {
+    -fx-background-color: #BEE3F8;
+    -fx-background-radius: 8px;
+} 
+
+.information {
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-color: #3182CE;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+}
+
+.information-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: #3182CE;
+    -fx-font-family: "Tahoma", sans-serif;
+}

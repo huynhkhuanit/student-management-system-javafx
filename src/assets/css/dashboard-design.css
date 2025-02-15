@@ -1,0 +1,344 @@
+.title-form {
+    -fx-text-fill: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.top-form {
+    -fx-background-color: #fff;
+    -fx-border-color: #000;
+    -fx-border-width: .4px .4px .2px .4px;
+}
+
+.top-form FontAwesomeIcon {
+    -fx-fill: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+}
+
+.top-form-group {
+    -fx-background-color: #efefef;
+    -fx-border-color: #000;
+    -fx-border-width: .2px .4px .4px .4px;
+}
+
+.close-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.close-btn:hover {
+    -fx-background-color: #C42B1C;
+}
+
+.close-btn:hover FontAwesomeIcon {
+    -fx-fill: #fff;
+}
+
+.minimize-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.minimize-btn:hover {
+    -fx-background-color: #ddd;
+}
+
+.minimize-btn:hover FontAwesomeIcon {
+    -fx-fill: #000;
+}
+
+.nav-form {
+    -fx-background-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-text-fill: #fff;
+    -fx-font-size: 15px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-alignment: center-left;
+}
+
+.nav-btn:hover {
+    -fx-background-color: #0093e9;
+}
+
+.nav-btn FontAwesomeIcon {
+    -fx-fill: #fff;
+}
+
+.logout-btn {
+    -fx-background-color: #0093e9;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.logout-btn:hover {
+    -fx-opacity: 0.9;
+}
+
+.logout-btn FontAwesomeIcon {
+    -fx-fill: #fff;
+}
+
+.white-bg {
+    -fx-background-color: #fff;
+}
+
+.shadow {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 6, 0, 0, 0);
+}
+
+.bg-line {
+    -fx-border-width: 2px;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-radius: 8px;
+}
+
+.border-radius {
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+}
+
+.bars-chart {
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* Main dahborad */
+.center-bg {
+    -fx-background-color: #fff;
+    -fx-background-radius: 8px;
+}
+
+/* QUẢN LÝ SINH VIÊN */
+.container__controls__btn {
+    -fx-spacing: 10;
+}
+
+.dashboard__student {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+}
+
+/* Kiểu dáng chung cho tất cả các nút */
+.controls__btn {
+    -fx-text-fill: #fff;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-width: 2px;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0.3, 0, 2);
+}
+
+.btn-add {
+    -fx-background-color: #0093e9;
+}
+.btn-add:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-update {
+    -fx-background-color: #008940;
+}
+.btn-update:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-delete {
+    -fx-background-color: #C42B1C;
+}
+.btn-delete:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-clear {
+    -fx-background-color: #FE6464;
+}
+.btn-clear:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-refresh {
+    -fx-background-color: #00AAF4;
+}
+.btn-refresh:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-search {
+    -fx-background-color: transparent;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: .8px;
+    -fx-border-radius: 8px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 14px;
+    -fx-padding: 0 0 0 28px;
+}
+
+.btn-search:focused {
+    -fx-border-width: 1.8px;
+}
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+}
+
+.table-view .table-column {
+    -fx-alignment: CENTER;
+}
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-background-insets: 0 0 0 0;
+}
+
+.table-view .column-header, .filter {
+    -fx-background-color: transparent;
+    -fx-size: 40px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #fff;
+    -fx-font-family: "Arial", sans-serif;
+}
+
+.textfield {
+    -fx-background-color: linear-gradient(to bottom, #efefef, #eee);
+    -fx-background-radius: 4px;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: .8px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-border-radius: 4px;
+}
+
+.textfield:focused {
+    -fx-background-color: #fff;
+    -fx-border-width: 1px;
+}
+
+.label-info {
+    -fx-background-color: #fff;
+    -fx-background-radius: 4px;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: .8px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-border-radius: 4px;
+    -fx-padding: 0 0 0 5px;
+}
+
+.insert-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: #0093e9;
+    -fx-border-width: 1px;
+    -fx-font-size: 14px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-text-fill: #C42B1C;
+    -fx-cursor: hand;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-transition: all 0.3s ease;
+}
+
+/* Hiệu ứng hover khi di chuột vào */
+.insert-btn:hover {
+    -fx-opacity: 0.9;
+    -fx-border-color: #C42B1C;
+    -fx-background-color: #C42B1C;
+    -fx-font-weight: bold;
+    -fx-text-fill: #fff;
+}
+
+/* Khi nút bị disable */
+.insert-btn:disabled {
+    -fx-border-color: #0093e9;
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+.student__form__close__btn {
+    -fx-background-color: transparent;
+    -fx-border-color: #C42B1C;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #C42B1C;
+
+    /* Animation smooth */
+    -fx-transition: all 0.3s;
+}
+
+.student__form__close__btn:hover {
+    -fx-background-color: #C42B1C;
+    -fx-text-fill: #fff;
+    -fx-background-radius: 8px;
+}
+
+
+/* Information Section */
+.bg-transparent {
+    -fx-background-color: transparent;
+}
+
+.info__btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-text-fill: #0093e9;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 14px;
+}
+
+.info__btn:hover AnchorPane {
+    -fx-border-color: transparent;
+    -fx-background-color: #0093e9;
+    -fx-background-radius: 8px;
+}
+
+.info__btn:hover FontAwesomeIcon {
+    -fx-fill: #fff;
+}
+
+.info__btn:hover .info__label {
+    -fx-text-fill: #fff;
+}
+
+.info__btn:hover .info__sub-label {
+    -fx-text-fill: #fff;
+}
+
+.info__icon {
+    -fx-fill: #0093e9;
+}
+
+.info__sub-icon {
+    -fx-fill: #008940;
+}
+
+.info__label {
+    -fx-alignment: center;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0093e9;
+}
+
+.info__sub-label {
+    -fx-alignment: center;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #008940;
+}

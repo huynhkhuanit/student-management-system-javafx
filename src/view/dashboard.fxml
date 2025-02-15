@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import java.lang.String?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<StackPane fx:id="mainDashboard" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1100.0" stylesheets="@../assets/css/dashboard-design.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.dashboardController">
+   <children>
+      <AnchorPane prefHeight="200.0" prefWidth="200.0">
+         <children>
+            <BorderPane layoutX="247.0" layoutY="58.0" prefHeight="600.0" prefWidth="1100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <top>
+                  <AnchorPane prefHeight="46.0" prefWidth="1100.0" styleClass="top-form-group" BorderPane.alignment="CENTER">
+                     <children>
+                        <AnchorPane layoutX="-7.0" layoutY="-77.0" prefHeight="41.0" prefWidth="1107.0" styleClass="top-form" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <FontAwesomeIcon glyphName="GRADUATION_CAP" layoutX="14.0" layoutY="31.0" size="2em" styleClass="icon" />
+                              <Label layoutX="54.0" layoutY="9.0" styleClass="title-form" text="HỆ THỐNG QUẢN LÝ SINH VIÊN">
+                                 <font>
+                                    <Font name="Tahoma Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <Button fx:id="closeBtn" layoutX="1067.0" layoutY="2.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="40.0" styleClass="close-btn">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="CLOSE" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="minimizeBtn" layoutX="1027.0" layoutY="2.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="40.0" styleClass="minimize-btn">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="MINUS" />
+                                 </graphic>
+                              </Button>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </AnchorPane>
+               </top>
+               <left>
+                  <AnchorPane prefHeight="555.0" prefWidth="213.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <AnchorPane layoutX="10.0" prefHeight="554.0" prefWidth="203.0" styleClass="nav-form" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <FontAwesomeIcon fill="WHITE" glyphName="USER" layoutX="74.0" layoutY="86.0" size="7em" />
+                              <Label layoutX="61.0" layoutY="104.0" text="Chào mừng," textFill="WHITE">
+                                 <font>
+                                    <Font name="Tahoma" size="17.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="37.0" layoutY="125.0" text="huynhkhuanit" textFill="WHITE">
+                                 <font>
+                                    <Font name="Tahoma Bold" size="20.0" />
+                                 </font>
+                              </Label>
+                              <Line endX="100.0" layoutX="107.0" layoutY="176.0" startX="-100.0" stroke="WHITE" />
+                              <Button fx:id="dashboardBtn" layoutX="17.0" layoutY="198.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Trang chủ">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="HOME" selectionStart="1" size="2em" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="studentManageBtn" layoutX="17.0" layoutY="238.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Quản lý học sinh">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="USERS" selectionStart="1" size="1.7em" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="courseManageBtn" layoutX="17.0" layoutY="278.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Quản lý môn học">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="BOOK" selectionStart="1" size="2em" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="lecturerManageBtn" layoutX="17.0" layoutY="318.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Quản lý giảng viên">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="PLUS_CIRCLE" selectionStart="1" size="2em" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="infoManageBtn" layoutX="17.0" layoutY="398.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Thông tin">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="INFO_CIRCLE" selectionStart="1" size="2em" />
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="logoutBtn" layoutX="17.0" layoutY="498.0" mnemonicParsing="false" prefHeight="44.0" prefWidth="45.0" textFill="WHITE">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="SIGN_OUT" size="3em" />
+                                 </graphic>
+                                 <styleClass>
+                                    <String fx:value="logout-btn" />
+                                    <String fx:value="shadow" />
+                                 </styleClass>
+                              </Button>
+                              <Label layoutX="74.0" layoutY="510.0" text="ĐĂNG XUẤT" textFill="WHITE">
+                                 <font>
+                                    <Font name="Tahoma Bold" size="17.0" />
+                                 </font>
+                              </Label>
+                              <Button fx:id="gradesManageBtn" layoutX="17.0" layoutY="358.0" mnemonicParsing="false" prefHeight="35.0" prefWidth="180.0" styleClass="nav-btn" text="Quản lý điểm số">
+                                 <graphic>
+                                    <FontAwesomeIcon glyphName="TABLE" selectionStart="1" size="2em" />
+                                 </graphic>
+                              </Button>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </AnchorPane>
+               </left>
+               <center>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <AnchorPane fx:id="dashboardForm" prefHeight="554.0" prefWidth="886.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <AnchorPane layoutX="8.0" layoutY="7.0" prefHeight="538.0" prefWidth="873.0">
+                                 <styleClass>
+                                    <String fx:value="center-bg" />
+                                    <String fx:value="bg-line" />
+                                 </styleClass>
+                                 <children>
+                                    <AnchorPane layoutX="12.0" layoutY="12.0" prefHeight="147.0" prefWidth="847.0">
+                                       <children>
+                                          <AnchorPane layoutX="14.0" layoutY="10.0" prefHeight="128.0" prefWidth="260.0">
+                                             <styleClass>
+                                                <String fx:value="nav-form" />
+                                                <String fx:value="border-radius" />
+                                             </styleClass>
+                                             <children>
+                                                <FontAwesomeIcon fill="WHITE" glyphName="USERS" layoutX="14.0" layoutY="85.0" size="5em" />
+                                                <Label layoutX="86.0" layoutY="55.0" text="Tổng sinh viên" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="Tahoma Bold" size="15.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label fx:id="totalStudentsLabel" alignment="CENTER_RIGHT" layoutX="81.0" layoutY="1.0" prefHeight="42.0" prefWidth="171.0" text="0" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="System Bold" size="36.0" />
+                                                   </font>
+                                                </Label>
+                                             </children>
+                                          </AnchorPane>
+                                          <AnchorPane layoutX="294.0" layoutY="10.0" prefHeight="128.0" prefWidth="260.0">
+                                             <styleClass>
+                                                <String fx:value="nav-form" />
+                                                <String fx:value="border-radius" />
+                                             </styleClass>
+                                             <children>
+                                                <FontAwesomeIcon fill="WHITE" glyphName="MALE" layoutX="14.0" layoutY="85.0" size="5em" />
+                                                <Label layoutX="61.0" layoutY="55.0" text="Tổng sinh viên NAM" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="Tahoma Bold" size="15.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label fx:id="totalMaleStudentsLabel" alignment="CENTER_RIGHT" layoutX="82.0" layoutY="3.0" prefHeight="42.0" prefWidth="171.0" text="0" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="System Bold" size="36.0" />
+                                                   </font>
+                                                </Label>
+                                             </children>
+                                          </AnchorPane>
+                                          <AnchorPane layoutX="573.0" layoutY="10.0" prefHeight="128.0" prefWidth="260.0">
+                                             <styleClass>
+                                                <String fx:value="nav-form" />
+                                                <String fx:value="border-radius" />
+                                             </styleClass>
+                                             <children>
+                                                <FontAwesomeIcon fill="WHITE" glyphName="FEMALE" layoutX="14.0" layoutY="85.0" size="5em" />
+                                                <Label layoutX="67.0" layoutY="54.0" text="Tổng sinh viên NỮ" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="Tahoma Bold" size="15.0" />
+                                                   </font>
+                                                </Label>
+                                                <Label fx:id="totalFemaleStudentsLabel" alignment="CENTER_RIGHT" layoutX="78.0" prefHeight="42.0" prefWidth="171.0" text="0" textFill="WHITE">
+                                                   <font>
+                                                      <Font name="System Bold" size="36.0" />
+                                                   </font>
+                                                </Label>
+                                             </children>
+                                          </AnchorPane>
+                                       </children>
+                                       <styleClass>
+                                          <String fx:value="center-bg" />
+                                          <String fx:value="shadow" />
+                                       </styleClass>
+                                    </AnchorPane>
+                                    <AnchorPane layoutX="14.0" layoutY="169.0" prefHeight="353.0" prefWidth="386.0">
+                                       <styleClass>
+                                          <String fx:value="white-bg" />
+                                          <String fx:value="bg-line" />
+                                          <String fx:value="border-radius" />
+                                       </styleClass>
+                                       <children>
+                                          <BarChart fx:id="totalStudentsChart" layoutX="-57.0" layoutY="-47.0" prefHeight="353.0" prefWidth="443.0" title="Biểu đồ tổng sinh viên" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <xAxis>
+                                              <CategoryAxis side="BOTTOM" />
+                                            </xAxis>
+                                            <yAxis>
+                                              <NumberAxis side="LEFT" />
+                                            </yAxis>
+                                          </BarChart>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane layoutX="410.0" layoutY="169.0" prefHeight="170.0" prefWidth="451.0" styleClass="bg-line">
+                                       <children>
+                                          <AreaChart fx:id="avgScoreChart" layoutX="-31.0" layoutY="-140.0" prefHeight="264.0" prefWidth="473.0" title="Thống kê điểm sinh viên" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <xAxis>
+                                              <CategoryAxis side="BOTTOM" />
+                                            </xAxis>
+                                            <yAxis>
+                                              <NumberAxis side="LEFT" />
+                                            </yAxis>
+                                          </AreaChart>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane layoutX="410.0" layoutY="354.0" prefHeight="170.0" prefWidth="451.0" styleClass="bg-line">
+                                       <children>
+                                          <LineChart fx:id="yearlyStatsChart" layoutX="-65.0" layoutY="-100.0" prefHeight="304.0" prefWidth="451.0" title="Thống kê theo năm học" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <xAxis>
+                                              <CategoryAxis side="BOTTOM" />
+                                            </xAxis>
+                                            <yAxis>
+                                              <NumberAxis side="LEFT" />
+                                            </yAxis>
+                                          </LineChart>
+                                       </children>
+                                    </AnchorPane>
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane fx:id="studentManageForm" layoutX="8.8" layoutY="5.0" prefHeight="542.0" prefWidth="874.0" styleClass="bg-line" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="9.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="5.0">
+                           <children>
+                              <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="528.0" prefWidth="874.0">
+                                 <children>
+                                    <TextField fx:id="studentManageSearch" layoutX="11.0" layoutY="13.0" prefHeight="30.0" prefWidth="260.0" promptText="Tìm kiếm" styleClass="btn-search" />
+                                    <FontAwesomeIcon glyphName="SEARCH" layoutX="18.0" layoutY="34.0" size="1.5em" />
+                                    <TableView fx:id="studentTable" layoutX="11.0" layoutY="51.0" prefHeight="400.0" prefWidth="854.0">
+                                      <columns>
+                                        <TableColumn fx:id="student_colStudentID" prefWidth="83.19999504089355" text="MSSV" />
+                                        <TableColumn fx:id="student_colFirstName" prefWidth="67.20000457763672" text="Họ" />
+                                          <TableColumn fx:id="student_colLastName" prefWidth="91.20002746582031" text="Tên" />
+                                          <TableColumn fx:id="student_colBirthYear" prefWidth="71.99996948242188" text="Năm sinh" />
+                                          <TableColumn fx:id="student_colGender" prefWidth="75.0" text="Giới tính" />
+                                          <TableColumn fx:id="student_colSchoolYear" prefWidth="99.19998168945312" text="Năm học" />
+                                          <TableColumn fx:id="student_colMajor" prefWidth="138.4000244140625" text="Chuyên ngành" />
+                                          <TableColumn fx:id="student_colSubject" prefWidth="116.80010986328125" text="Môn học" />
+                                          <TableColumn fx:id="student_colStatus" prefWidth="112.00006103515625" text="Trạng thái" />
+                                      </columns>
+                                    </TableView>
+                                    <HBox fx:id="controlButtonsBox" alignment="CENTER" layoutX="11.0" layoutY="458.0" prefHeight="58.0" prefWidth="854.0" styleClass="container__controls__btn">
+                                       <children>
+                                          <Button fx:id="btnRefresh" layoutX="560.0" layoutY="27.0" mnemonicParsing="false" text="Làm mới bảng">
+                                             <styleClass>
+                                                <String fx:value="controls__btn" />
+                                                <String fx:value="btn-add" />
+                                             </styleClass>
+                                          </Button>
+                                          <Button fx:id="btnAdd" mnemonicParsing="false" text="Thêm sinh viên">
+                                             <styleClass>
+                                                <String fx:value="controls__btn" />
+                                                <String fx:value="btn-add" />
+                                             </styleClass>
+                                          </Button>
+                                          <Button fx:id="btnUpdate" layoutX="384.0" layoutY="27.0" mnemonicParsing="false" text="Cập nhật sinh viên">
+                                             <styleClass>
+                                                <String fx:value="controls__btn" />
+                                                <String fx:value="btn-update" />
+                                             </styleClass>
+                                          </Button>
+                                          <Button fx:id="btnDelete" layoutX="424.0" layoutY="27.0" mnemonicParsing="false" text="Xoá sinh viên">
+                                             <styleClass>
+                                                <String fx:value="controls__btn" />
+                                                <String fx:value="btn-delete" />
+                                             </styleClass>
+                                          </Button>
+                                          <Button fx:id="btnClearAll" layoutX="508.0" layoutY="27.0" mnemonicParsing="false" text="Xoá toàn bộ">
+                                             <styleClass>
+                                                <String fx:value="controls__btn" />
+                                                <String fx:value="btn-delete" />
+                                             </styleClass>
+                                          </Button>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="shadow" />
+                                    <String fx:value="white-bg" />
+                                    <String fx:value="border-radius" />
+                                 </styleClass>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane fx:id="courseManageForm" layoutX="26.0" layoutY="27.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <AnchorPane layoutX="8.0" layoutY="7.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
+                                 <children>
+                                    <Label alignment="CENTER_RIGHT" layoutX="4.0" layoutY="54.0" prefHeight="18.0" prefWidth="110.0" text="Mã:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtSubjectID" layoutX="129.0" layoutY="48.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="1.0" layoutY="102.0" prefHeight="18.0" prefWidth="117.0" text="Tên môn học:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtSubjectName" layoutX="129.0" layoutY="96.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="1.0" layoutY="148.0" prefHeight="18.0" prefWidth="117.0" text="Số tín chỉ:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtCredits" layoutX="129.0" layoutY="142.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutY="197.0" prefHeight="18.0" prefWidth="117.0" text="Giảng viên:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtLecturer" layoutX="128.0" layoutY="191.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutY="244.0" prefHeight="18.0" prefWidth="117.0" text="Học kỳ:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER_RIGHT" layoutY="293.0" prefHeight="18.0" prefWidth="117.0" text="Trạng thái:" textAlignment="JUSTIFY">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <ComboBox fx:id="cbSemester" layoutX="128.0" layoutY="238.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
+                                    <ComboBox fx:id="cbStatus" layoutX="128.0" layoutY="287.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
+                                    <Label layoutX="26.0" layoutY="14.0" text="QUẢN LÝ MÔN HỌC (FORM)" textFill="#0093e9">
+                                       <font>
+                                          <Font name="Tahoma Bold" size="18.0" />
+                                       </font>
+                                    </Label>
+                                    <Button fx:id="btnAddSubject" layoutX="26.0" layoutY="349.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnRefreshSubject" layoutX="156.0" layoutY="349.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnDeleteSubject" layoutX="26.0" layoutY="400.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearAllSubjects" layoutX="156.0" layoutY="400.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá toàn bộ">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnUpdateSubject" layoutX="26.0" layoutY="454.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Cập nhật">
+                                       <styleClass>
+                                          <String fx:value="btn-update" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearFormSubject" layoutX="156.0" layoutY="454.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
+                                 </children>
+                              </AnchorPane>
+                              <AnchorPane layoutX="321.0" layoutY="7.0" prefHeight="535.0" prefWidth="564.0" styleClass="bg-line">
+                                 <children>
+                                    <TableView fx:id="tblSubjects" layoutX="8.0" layoutY="7.0" prefHeight="518.0" prefWidth="546.0">
+                                      <columns>
+                                        <TableColumn fx:id="colSubjectID" prefWidth="75.0" text="Mã" />
+                                        <TableColumn fx:id="colSubjectName" prefWidth="143.0" text="Tên môn học" />
+                                          <TableColumn fx:id="colCredits" prefWidth="62.0" text="Số tín chỉ" />
+                                          <TableColumn fx:id="colLecturer" prefWidth="122.0" text="Giảng viên" />
+                                          <TableColumn fx:id="colSemester" prefWidth="63.0" text="Học kỳ" />
+                                          <TableColumn fx:id="colStatus" prefWidth="79.0" text="Trạng thái" />
+                                      </columns>
+                                    </TableView>
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
+                                 <children>
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="48.0" prefHeight="17.0" prefWidth="102.0" text="Mã giảng viên:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtLecturerID" layoutX="123.0" layoutY="42.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="92.0" prefHeight="17.0" prefWidth="102.0" text="Họ và tên:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label layoutX="20.0" layoutY="8.0" text="QUẢN LÝ GIẢNG VIÊN (FORM)" textFill="#0093e9">
+                                       <font>
+                                          <Font name="Tahoma Bold" size="18.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtLecturerName" layoutX="123.0" layoutY="86.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="135.0" prefHeight="17.0" prefWidth="102.0" text="Giới tính:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="179.0" prefHeight="17.0" prefWidth="102.0" text="Học vị:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="222.0" prefHeight="17.0" prefWidth="102.0" text="Số điện thoại:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtLecturerPhone" layoutX="123.0" layoutY="216.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="266.0" prefHeight="17.0" prefWidth="102.0" text="Trạng thái:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <ComboBox fx:id="cbLecturerGender" layoutX="123.0" layoutY="129.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <ComboBox fx:id="cbLecturerDegree" layoutX="123.0" layoutY="173.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <ComboBox fx:id="cbLecturerStatus" layoutX="123.0" layoutY="260.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
+                                    <Button fx:id="btnAddLecturer" layoutX="27.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnRefreshLecturer" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnDeleteLecturer" layoutX="27.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearAllLecturer" layoutX="157.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá toàn bộ">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnUpdateLecturer" layoutX="27.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Cập nhật">
+                                       <styleClass>
+                                          <String fx:value="btn-update" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearFormLecturer" layoutX="157.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
+                                 </children>
+                              </AnchorPane>
+                              <AnchorPane layoutX="323.0" layoutY="9.0" prefHeight="535.0" prefWidth="565.0" styleClass="bg-line">
+                                 <children>
+                                    <TableView fx:id="tableLecturer" layoutX="9.0" layoutY="9.0" prefHeight="517.0" prefWidth="548.0">
+                                      <columns>
+                                        <TableColumn fx:id="colLecturerID" prefWidth="88.0" text="Mã giảng viên" />
+                                        <TableColumn fx:id="colLecturerName" prefWidth="115.0" text="Họ và tên" />
+                                          <TableColumn fx:id="colLecturerGender" prefWidth="73.0" text="Giới tính" />
+                                          <TableColumn fx:id="colLecturerDegree" prefWidth="77.0" text="Học vị" />
+                                          <TableColumn fx:id="colLecturerPhone" prefWidth="87.0" text="SĐT" />
+                                          <TableColumn fx:id="colLecturerStatus" prefWidth="106.0" text="Trạng thái" />
+                                      </columns>
+                                    </TableView>
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
+                                 <children>
+                                    <Button fx:id="btnAddGrades" layoutX="26.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnRefreshGrades" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnDeleteGrades" layoutX="27.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearAllGrades" layoutX="157.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá toàn bộ">
+                                       <styleClass>
+                                          <String fx:value="btn-delete" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnUpdateGrades" layoutX="27.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Cập nhật">
+                                       <styleClass>
+                                          <String fx:value="btn-update" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnClearFormGrades" layoutX="157.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="57.0" prefHeight="18.0" prefWidth="88.0" text="MSSV:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtStudentIDGrades" layoutX="111.0" layoutY="51.0" prefHeight="30.0" prefWidth="180.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="100.0" prefHeight="18.0" prefWidth="88.0" text="Năm học:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="145.0" prefHeight="18.0" prefWidth="88.0" text="Môn học:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="189.0" prefHeight="18.0" prefWidth="88.0" text="Giữa kỳ:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtMidtermGrade" layoutX="111.0" layoutY="183.0" prefHeight="30.0" prefWidth="180.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="232.0" prefHeight="18.0" prefWidth="88.0" text="Cuối kỳ:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtFinalGrade" layoutX="111.0" layoutY="226.0" prefHeight="30.0" prefWidth="180.0" styleClass="textfield" />
+                                    <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="275.0" prefHeight="18.0" prefWidth="88.0" text="Tổng kết:">
+                                       <font>
+                                          <Font name="Tahoma" size="14.0" />
+                                       </font>
+                                    </Label>
+                                    <TextField fx:id="txtTotalGrade" layoutX="111.0" layoutY="269.0" prefHeight="30.0" prefWidth="180.0" styleClass="textfield" />
+                                    <Label fx:id="lblSchoolYearGrades" layoutX="111.0" layoutY="94.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="Label" />
+                                    <Label fx:id="lblSubjectGrades" layoutX="111.0" layoutY="139.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="Label" />
+                                    <Label layoutX="26.0" layoutY="11.0" text="QUẢN LÝ ĐIỂM SỐ (FORM)" textFill="#0093e9">
+                                       <font>
+                                          <Font name="Tahoma Bold" size="18.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </AnchorPane>
+                              <AnchorPane layoutX="323.0" layoutY="9.0" prefHeight="535.0" prefWidth="565.0" styleClass="bg-line">
+                                 <children>
+                                    <TableView fx:id="tableGrades" layoutX="10.0" layoutY="45.0" prefHeight="480.0" prefWidth="547.0">
+                                      <columns>
+                                        <TableColumn fx:id="colStudentIDGrades" prefWidth="115.0" text="MSSV" />
+                                        <TableColumn fx:id="colSchoolYearGrades" text="Năm học" />
+                                          <TableColumn fx:id="colSubjectGrades" prefWidth="107.0" text="Môn học" />
+                                          <TableColumn fx:id="colMidtermGrade" text="Giữa kỳ" />
+                                          <TableColumn fx:id="colFinalGrade" prefWidth="70.0" text="Cuối kì" />
+                                          <TableColumn fx:id="colTotalGrade" prefWidth="96.0" text="Tổng kết" />
+                                      </columns>
+                                    </TableView>
+                                    <TextField fx:id="txtSearchGrades" layoutX="10.0" layoutY="8.0" prefHeight="30.0" prefWidth="221.0" promptText="Tìm kiếm" styleClass="btn-search" />
+                                    <FontAwesomeIcon glyphName="SEARCH" layoutX="17.0" layoutY="29.0" size="1.5em" />
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane fx:id="infoManageForm" layoutX="49.0" layoutY="34.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="879.0" styleClass="bg-line">
+                                 <children>
+                                    <Label layoutX="14.0" layoutY="14.0" prefHeight="23.0" prefWidth="848.0" style="-fx-padding: 16px 0 16px 0; -fx-alignment: CENTER; -fx-border-color: #0093e9; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-color: transparent;" text="HỆ THỐNG QUẢN LÝ SINH VIÊN" textFill="#0093e9">
+                                       <font>
+                                          <Font name="Tahoma Bold" size="20.0" />
+                                       </font>
+                                    </Label>
+                                    <Button fx:id="teamBtn" layoutX="185.0" layoutY="92.0" mnemonicParsing="false" styleClass="info__btn">
+                                       <graphic>
+                                          <AnchorPane prefHeight="150.0" prefWidth="150.0" styleClass="bg-line">
+                                             <children>
+                                                <FontAwesomeIcon glyphName="USERS" layoutX="37.0" layoutY="65.0" size="5em" styleClass="info__icon" />
+                                                <Label layoutX="49.0" layoutY="79.0" styleClass="info__label" text="NHÓM" />
+                                                <Label layoutX="19.0" layoutY="100.0" styleClass="info__sub-label" text="Huỳnh Văn Khuân" />
+                                                <Label layoutX="21.0" layoutY="118.0" styleClass="info__sub-label" text="Mai Trọng Quang" />
+                                             </children>
+                                          </AnchorPane>
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="versionBtn" layoutX="16.0" layoutY="92.0" mnemonicParsing="false" styleClass="info__btn">
+                                       <graphic>
+                                          <AnchorPane prefHeight="150.0" prefWidth="150.0" styleClass="bg-line">
+                                             <children>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" layoutX="49.0" layoutY="65.0" size="5em" styleClass="info__icon" />
+                                                <Label layoutX="35.0" layoutY="75.0" styleClass="info__label" text="Phiên bản" />
+                                                <Label layoutX="61.0" layoutY="95.0" styleClass="info__sub-label" text="V1.0" />
+                                             </children>
+                                          </AnchorPane>
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="technologyBtn" layoutX="356.0" layoutY="92.0" mnemonicParsing="false" styleClass="info__btn">
+                                       <graphic>
+                                          <AnchorPane prefHeight="150.0" prefWidth="150.0" styleClass="bg-line">
+                                             <children>
+                                                <FontAwesomeIcon glyphName="GRADUATION_CAP" layoutX="30.0" layoutY="65.0" size="5em" styleClass="info__icon" />
+                                                <Label layoutX="28.0" layoutY="95.0" styleClass="info__sub-label" text="JavaFX, MySQL" />
+                                                <Label layoutX="19.0" layoutY="75.0" prefHeight="20.0" prefWidth="113.0" styleClass="info__label" text="Công nghệ" />
+                                             </children>
+                                          </AnchorPane>
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="clauseBtn" layoutX="524.0" layoutY="92.0" mnemonicParsing="false" styleClass="info__btn">
+                                       <graphic>
+                                          <AnchorPane prefHeight="150.0" prefWidth="150.0" styleClass="bg-line">
+                                             <children>
+                                                <Label layoutX="19.0" layoutY="75.0" prefHeight="20.0" prefWidth="113.0" styleClass="info__label" text="Điều khoản" />
+                                                <Label layoutX="19.0" layoutY="95.0" prefHeight="20.0" prefWidth="113.0" styleClass="info__label" text="Chính sách" />
+                                                <FontAwesomeIcon glyphName="BOOK" layoutX="43.0" layoutY="65.0" size="5em" styleClass="info__icon" />
+                                                <Label layoutX="31.0" layoutY="115.0" styleClass="info__sub-label" text="Đọc thêm...">
+                                                   <graphic>
+                                                      <FontAwesomeIcon glyphName="ARROW_RIGHT" styleClass="info__sub-icon" />
+                                                   </graphic>
+                                                </Label>
+                                             </children>
+                                          </AnchorPane>
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="questionBtn" layoutX="692.0" layoutY="92.0" mnemonicParsing="false" styleClass="info__btn">
+                                       <graphic>
+                                          <AnchorPane prefHeight="150.0" prefWidth="150.0" styleClass="bg-line">
+                                             <children>
+                                                <FontAwesomeIcon glyphName="QUESTION_CIRCLE" layoutX="43.0" layoutY="65.0" size="5em" styleClass="info__icon" />
+                                                <Label layoutX="17.0" layoutY="75.0" prefHeight="20.0" prefWidth="113.0" styleClass="info__label" text="Hỗ trợ" />
+                                                <Label layoutX="13.0" layoutY="95.0" styleClass="info__sub-label" text="Thông tin liên hệ">
+                                                   <graphic>
+                                                      <FontAwesomeIcon glyphName="ARROW_RIGHT" styleClass="info__sub-icon" />
+                                                   </graphic>
+                                                </Label>
+                                             </children>
+                                          </AnchorPane>
+                                       </graphic>
+                                    </Button>
+                                    <AnchorPane fx:id="versionForm" layoutX="16.0" layoutY="268.0" prefHeight="252.0" prefWidth="847.0" styleClass="bg-line" visible="false">
+                                       <children>
+                                          <Label layoutX="14.0" layoutY="62.0" styleClass="info__label" text="Phiên bản">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="118.0" text="Phiên bản hiện tại: V1.0 (Là phiên bản mới nhất được cập nhật!)">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="346.0" layoutY="14.0" styleClass="info__label" text="THÔNG TIN">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane fx:id="teamForm" layoutX="17.0" layoutY="268.0" prefHeight="252.0" prefWidth="847.0" styleClass="bg-line" visible="false">
+                                       <children>
+                                          <Label layoutX="14.0" layoutY="77.0" styleClass="info__label" text="Nhóm">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="USERS" size="2em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="118.0" text="Lên ý tưởng: huynhkhuanit">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="346.0" layoutY="14.0" styleClass="info__label" text="THÔNG TIN">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="136.0" text="Nhóm phát triển: Huỳnh Văn Khuân + Mai Trọng Quang">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="154.0" text="Ngày phát hành: 14/02/2025">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="172.0" text="Liên hệ hỗ trợ: 2205CT0035@dhv.edu.vn">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane fx:id="technologyForm" layoutX="17.0" layoutY="268.0" prefHeight="252.0" prefWidth="847.0" styleClass="bg-line" visible="false">
+                                       <children>
+                                          <Label layoutX="14.0" layoutY="62.0" styleClass="info__label" text="Công nghệ sử dụng">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="GRADUATION_CAP" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="118.0" text="Ngôn ngữ lập trình: Java">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="346.0" layoutY="14.0" styleClass="info__label" text="THÔNG TIN">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="136.0" text="Front-end: JavaFX + SceneBuilder">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="154.0" text="Back-end: MySQL">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="172.0" text="Thư viện: FontAwesomeFX">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="190.0" text="Hệ điều hành hỗ trợ: Windows">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane fx:id="clauseForm" layoutX="17.0" layoutY="268.0" prefHeight="252.0" prefWidth="847.0" styleClass="bg-line" visible="false">
+                                       <children>
+                                          <Label layoutX="14.0" layoutY="62.0" styleClass="info__label" text="Điều khoản &amp; Chính sách">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="BOOK" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="118.0" text="Phần mềm này chỉ dành cho mục đích giáo dục.">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="346.0" layoutY="14.0" styleClass="info__label" text="THÔNG TIN">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="136.0" text="Không sử dụng cho mục đích thương mại nếu không có sự cho phép từ tác giả.">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="154.0" text="ADMIN chịu trách nhiệm quản lý về dữ liệu nhập vào hệ thống.">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane fx:id="questionForm" layoutX="17.0" layoutY="268.0" prefHeight="252.0" prefWidth="847.0" styleClass="bg-line" visible="false">
+                                       <children>
+                                          <Label layoutX="14.0" layoutY="62.0" styleClass="info__label" text="Hỗ trợ">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="QUESTION_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="118.0" text="Website: https://github.com/huynhkhuanit/">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="346.0" layoutY="14.0" styleClass="info__label" text="THÔNG TIN">
+                                             <graphic>
+                                                <FontAwesomeIcon glyphName="INFO_CIRCLE" size="3em" styleClass="info__icon" />
+                                             </graphic>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="136.0" text="Liên hệ email: 2205CT0035@dhv.edu.vn">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                          <Label layoutX="14.0" layoutY="154.0">
+                                             <font>
+                                                <Font name="Tahoma" size="14.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                    </AnchorPane>
+                                 </children>
+                              </AnchorPane>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </AnchorPane>
+               </center>
+            </BorderPane>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

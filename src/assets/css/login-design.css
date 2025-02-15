@@ -1,0 +1,53 @@
+.left-pane {
+    -fx-background-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+}
+
+.right-bg {
+    -fx-background-color: #fff;
+}
+
+.text-field {
+    -fx-background-color: linear-gradient(to bottom, #efefef, #eee);
+    -fx-border-color: #000;
+    -fx-border-width: 0.2px;
+    -fx-font-size: 13px;
+    -fx-font-family: "Tahoma", sans-serif;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+.text-field:focused {
+    -fx-background-color: #fff;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-width: 0.8px;
+}
+
+.login-btn {
+    -fx-background-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-cursor: hand;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-text-fill: #fff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Tahoma", sans-serif;
+}
+
+.login-btn:hover {
+    -fx-opacity: 0.9;
+}
+
+.close-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-background-radius: 0px;
+    -fx-border-radius: 0px;
+}
+
+.close-btn:hover {
+    -fx-background-color: #C42B1C;
+}
+
+.close-btn:hover FontAwesomeIcon {
+    -fx-fill: #fff;
+}

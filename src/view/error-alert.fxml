@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="55.0" prefWidth="383.0" styleClass="bg-error" stylesheets="@../assets/css/custom-alert.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label fx:id="errorText" layoutX="66.0" layoutY="18.0" prefHeight="20.0" prefWidth="308.0" styleClass="error-text" text="Thử nghiệm đăng nhập lỗi" />
+      <Button layoutX="28.0" layoutY="14.0" mnemonicParsing="false" styleClass="error" />
+      <FontAwesomeIcon fill="WHITE" glyphName="WARNING" layoutX="36.0" layoutY="32.0" />
+   </children>
+</AnchorPane>
