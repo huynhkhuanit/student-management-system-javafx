@@ -388,7 +388,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
@@ -476,7 +476,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
@@ -545,8 +545,8 @@
                                        </font>
                                     </Label>
                                     <TextField fx:id="txtTotalGrade" layoutX="111.0" layoutY="269.0" prefHeight="30.0" prefWidth="180.0" styleClass="textfield" />
-                                    <Label fx:id="lblSchoolYearGrades" layoutX="111.0" layoutY="94.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="Label" />
-                                    <Label fx:id="lblSubjectGrades" layoutX="111.0" layoutY="139.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="Label" />
+                                    <Label fx:id="lblSchoolYearGrades" layoutX="111.0" layoutY="94.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="-" />
+                                    <Label fx:id="lblSubjectGrades" layoutX="111.0" layoutY="139.0" prefHeight="30.0" prefWidth="180.0" styleClass="label-info" text="-" />
                                     <Label layoutX="26.0" layoutY="11.0" text="QUẢN LÝ ĐIỂM SỐ (FORM)" textFill="#0093e9">
                                        <font>
                                           <Font name="Tahoma Bold" size="18.0" />

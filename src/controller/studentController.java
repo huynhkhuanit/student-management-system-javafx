@@ -192,6 +192,7 @@ public class studentController {
     }
 
     // Phương thức thêm sinh viên
+    // Phương thức thêm/cập nhật sinh viên
     private void saveOrUpdateStudent() {
         connect = database.connectDB();
 
@@ -205,12 +206,22 @@ public class studentController {
                 return;
             }
 
+            // Lấy course_id từ course_name để lưu vào database
+            String selectedCourseName = cbSubject.getValue();
+            String courseID = getCourseIDByName(selectedCourseName);
+
+            if (courseID == null) {
+                AlertComponent.showError("Lỗi", null, "Không tìm thấy mã môn học trong hệ thống!");
+                return;
+            }
+
             String sql;
             boolean isUpdating = isEditMode;
 
             if (isUpdating) {
                 // Câu lệnh UPDATE
-                sql = "UPDATE students SET first_name=?, last_name=?, birth_date=?, gender=?, school_year=?, major=?, subject=?, status=?, photo_path=? WHERE student_id=?";
+                sql = "UPDATE students SET first_name=?, last_name=?, birth_date=?, gender=?, " +
+                        "school_year=?, major=?, subject=?, status=?, photo_path=? WHERE student_id=?";
                 preparedStatement = connect.prepareStatement(sql);
 
                 preparedStatement.setString(1, txtFirstName.getText());
@@ -219,7 +230,7 @@ public class studentController {
                 preparedStatement.setString(4, cbGender.getValue());
                 preparedStatement.setString(5, cbSchoolYear.getValue());
                 preparedStatement.setString(6, cbMajor.getValue());
-                preparedStatement.setString(7, cbSubject.getValue());
+                preparedStatement.setString(7, courseID); // Lưu course_id thay vì course_name
                 preparedStatement.setString(8, cbStatus.getValue());
 
                 // Nếu có ảnh thì lưu đường dẫn
@@ -242,17 +253,18 @@ public class studentController {
                 }
 
                 // Câu lệnh INSERT
-                sql = "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, school_year, major, subject, status, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                sql = "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, " +
+                        "school_year, major, subject, status, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 preparedStatement = connect.prepareStatement(sql);
 
-                preparedStatement.setString(1, txtMSSV.getText()); // MSSV (đã bị bỏ qua trước đây)
+                preparedStatement.setString(1, txtMSSV.getText()); // MSSV
                 preparedStatement.setString(2, txtFirstName.getText());
                 preparedStatement.setString(3, txtLastName.getText());
                 preparedStatement.setDate(4, java.sql.Date.valueOf(dpBirthDate.getValue()));
                 preparedStatement.setString(5, cbGender.getValue());
                 preparedStatement.setString(6, cbSchoolYear.getValue());
                 preparedStatement.setString(7, cbMajor.getValue());
-                preparedStatement.setString(8, cbSubject.getValue());
+                preparedStatement.setString(8, courseID); // Lưu course_id thay vì course_name
                 preparedStatement.setString(9, cbStatus.getValue());
 
                 // Nếu có ảnh thì lưu đường dẫn
@@ -264,7 +276,17 @@ public class studentController {
             if (rowsAffected > 0) {
                 AlertComponent.showInformation("Thành công", null,
                         isUpdating ? "Thông tin sinh viên đã được cập nhật!" : "Đã thêm sinh viên vào hệ thống!");
-                closeStudentForm(); // Đóng form
+
+                // Cập nhật danh sách sinh viên ngay lập tức
+                dashboardController.getInstance().addStudentsShowList();
+
+                // iểm tra nếu sinh viên thay đổi môn học hoặc năm học -> cập nhật bảng điểm
+                if (isUpdating) {
+                    updateGradesSubject(txtMSSV.getText(), courseID);
+                    dashboardController.getInstance().showGradesList();
+                }
+
+                closeStudentForm(); // Đóng form sau khi cập nhật thành công
             } else {
                 AlertComponent.showError("Lỗi", null, "Không thể cập nhật sinh viên!");
             }
@@ -280,6 +302,27 @@ public class studentController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void updateGradesSubject(String studentID, String newCourseID) {
+        String sql = "UPDATE grades SET course_id = ? WHERE student_id = ?";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, newCourseID);
+            preparedStatement.setString(2, studentID);
+
+            int rowsUpdated = preparedStatement.executeUpdate();
+            if (rowsUpdated > 0) {
+                // Alert thông báo
+                AlertComponent.showInformation("Thành công", null, "✅ Đã cập nhật môn học trong bảng điểm!");
+            } else {
+                AlertComponent.showError("Lỗi", null, "⚠️ Không có bản ghi nào cần cập nhật!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -321,4 +364,22 @@ public class studentController {
             }
         }
     }
+
+    // Lấy course_id từ course_name
+    private String getCourseIDByName(String courseName) {
+        String sql = "SELECT course_id FROM courses WHERE course_name = ?";
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, courseName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("course_id"); // Trả về mã môn học
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // Không tìm thấy môn học
+    }
+
 }

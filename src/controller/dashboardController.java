@@ -38,6 +38,7 @@ import java.time.LocalDate;
 // model data
 import model.StudentData;
 import model.CourseData;
+import model.GradesData;
 import model.LecturerData;
 import database.database;
 import controller.studentController;
@@ -48,6 +49,16 @@ public class dashboardController {
     private PreparedStatement preparedStatement;
     private Statement statement;
     private ResultSet resultSet;
+
+    private static dashboardController instance;
+
+    public dashboardController() {
+        instance = this;
+    }
+
+    public static dashboardController getInstance() {
+        return instance;
+    }
 
     @FXML
     private Button closeBtn;
@@ -197,10 +208,10 @@ public class dashboardController {
             btnClearFormGrades, gradesManageBtn;
 
     @FXML
-    private TableView<?> tableGrades;
+    private TableView<GradesData> tableGrades;
 
     @FXML
-    private TableColumn<?, ?> colStudentIDGrades, colSchoolYearGrades, colSubjectGrades, colMidtermGrade,
+    private TableColumn<GradesData, String> colStudentIDGrades, colSchoolYearGrades, colSubjectGrades, colMidtermGrade,
             colFinalGrade, colTotalGrade;
 
     // =========== QUẢN LÝ ĐIỂM ===========
@@ -225,6 +236,7 @@ public class dashboardController {
         addStudentsShowList(); // Load dữ liệu sinh viên
         showCoursesList(); // Load dữ liệu môn học
         showLecturersList(); // Load dữ liệu giảng viên
+        showGradesList(); // Load dữ liệu điểm
 
         updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox
 
@@ -293,6 +305,9 @@ public class dashboardController {
         btnAdd.setOnAction(e -> handleAddBtn()); // Phương thức thêm sinh viên
         btnRefresh.setOnAction(e -> {
             studentManageSearch.clear(); // Xoá nội dung ô tìm kiếm khi làm mới
+
+            // Cập nhật danh sách điểm để hiển thị lại môn học vừa cập nhật
+            dashboardController.getInstance().showGradesList();
             addStudentsShowList();
         }); // Phương thức làm mới bảng sinh viên
         btnUpdate.setOnAction(e -> handleUpdateStudent()); // Phương thức cập nhật sinh viên
@@ -347,10 +362,7 @@ public class dashboardController {
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
         // ========== QUẢN LÝ ĐIỂM ==========
-
-        // Gán dữ liệu mặc định cho bảng điểm
-        setupTableColumns();
-        loadGradesData();
+        txtStudentIDGrades.textProperty().addListener((observable, oldValue, newValue) -> loadStudentInfo());
 
         // Sự kiện nút thêm điểm
         btnAddGrades.setOnAction(e -> handleAddGrades());
@@ -369,9 +381,6 @@ public class dashboardController {
 
         // Sự kiện nút xóa thông tin nhập liệu
         btnClearFormGrades.setOnAction(e -> clearGradesForm());
-
-        // Gán giá trị mặc định
-        btnAddGrades.setDisable(true);
 
         // ========== QUẢN LÝ ĐIỂM ==========
 
@@ -459,9 +468,17 @@ public class dashboardController {
 
     // ========== QUẢN LÝ SINH VIÊN ==========
 
+    // Phương thức lấy dữ liệu từ database -> ánh xạ vào table view
     public ObservableList<StudentData> addStudentsListData() {
         ObservableList<StudentData> listStudents = FXCollections.observableArrayList();
-        String sql = "SELECT * FROM students";
+        String sql = """
+                    SELECT s.student_id, s.first_name, s.last_name, s.birth_date,
+                           s.gender, s.school_year, s.major,
+                           c.course_name AS subject, s.status, s.photo_path
+                    FROM students s
+                    LEFT JOIN courses c ON s.subject = c.course_id
+                """;
+
         connect = database.connectDB();
 
         try {
@@ -490,8 +507,10 @@ public class dashboardController {
         return listStudents;
     }
 
+    // Hiển thị danh sách sinh viên
     private ObservableList<StudentData> addStudentsListD;
 
+    // Phương thức hiển thị danh sách sinh viên
     public void addStudentsShowList() {
         addStudentsListD = addStudentsListData();
 
@@ -502,12 +521,13 @@ public class dashboardController {
         student_colGender.setCellValueFactory(new PropertyValueFactory<>("gender"));
         student_colSchoolYear.setCellValueFactory(new PropertyValueFactory<>("schoolYear"));
         student_colMajor.setCellValueFactory(new PropertyValueFactory<>("major"));
-        student_colSubject.setCellValueFactory(new PropertyValueFactory<>("subject"));
+        student_colSubject.setCellValueFactory(new PropertyValueFactory<>("subject")); // Hiển thị course_name
         student_colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
         studentTable.setItems(addStudentsListD);
     }
 
+    // Phương thức mở form sinh viên
     private void openStudentForm() {
         // Lấy sinh viên được chọn từ TableView
         StudentData selectedStudent = studentTable.getSelectionModel().getSelectedItem();
@@ -539,6 +559,7 @@ public class dashboardController {
         }
     }
 
+    // Phương thức cập nhật sinh viên
     private void handleUpdateStudent() {
         StudentData selectedStudent = studentTable.getSelectionModel().getSelectedItem();
 
@@ -696,7 +717,12 @@ public class dashboardController {
     // Phương thức lấy dữ liệu từ database -> ánh xạ vào table view
     public ObservableList<CourseData> getCoursesListData() {
         ObservableList<CourseData> courseList = FXCollections.observableArrayList();
-        String sql = "SELECT * FROM courses";
+        String sql = """
+                    SELECT c.course_id, c.course_name, c.credits, c.lecturer, l.lecturer_name,
+                           c.semester, c.status
+                    FROM courses c
+                    LEFT JOIN lecturers l ON c.lecturer = l.lecturer_id
+                """;
 
         connect = database.connectDB();
 
@@ -705,11 +731,15 @@ public class dashboardController {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
+                String lecturerDisplayName = resultSet.getString("lecturer_name") != null
+                        ? resultSet.getString("lecturer_name")
+                        : "Chưa có giảng viên";
+
                 courseList.add(new CourseData(
                         resultSet.getString("course_id"),
                         resultSet.getString("course_name"),
                         resultSet.getInt("credits"),
-                        resultSet.getString("lecturer"),
+                        lecturerDisplayName, // Hiển thị tên giảng viên thay vì ID
                         resultSet.getString("semester"),
                         resultSet.getString("status")));
             }
@@ -719,6 +749,7 @@ public class dashboardController {
         return courseList;
     }
 
+    // Hiển thị danh sách môn học
     private ObservableList<CourseData> courseListData;
 
     public void showCoursesList() {
@@ -742,16 +773,49 @@ public class dashboardController {
             return;
         }
 
-        // Load dữ liệu vào các ô nhập liệu
         txtSubjectID.setText(selectedCourse.getSubjectID());
         txtSubjectName.setText(selectedCourse.getSubjectName());
         txtCredits.setText(String.valueOf(selectedCourse.getCredits()));
-        cbLecturer.setValue(selectedCourse.getLecturer());
         cbSemester.setValue(selectedCourse.getSemester());
         cbStatus.setValue(selectedCourse.getStatus());
 
-        // Khóa ô nhập mã môn học để tránh thay đổi
+        // Lấy lecturer_id từ database theo tên giảng viên
+        String lecturerID = getLecturerIDByName(selectedCourse.getLecturer());
+
+        // Lưu `lecturer_id` vào `UserData` của ComboBox
+        cbLecturer.setUserData(lecturerID);
+        cbLecturer.setValue(selectedCourse.getLecturer());
+
+        // Khóa mã môn học để tránh sửa
         txtSubjectID.setDisable(true);
+    }
+
+    // Lấy lecturer_id từ lecturer_name
+    private String getLecturerIDByName(String lecturerName) {
+        String sql = "SELECT lecturer_id FROM lecturers WHERE lecturer_name = ?";
+        connect = database.connectDB();
+
+        try {
+            preparedStatement = connect.prepareStatement(sql);
+            preparedStatement.setString(1, lecturerName);
+            resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("lecturer_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (preparedStatement != null)
+                    preparedStatement.close();
+                if (connect != null)
+                    connect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     // Kiểm tra input hợp lệ đối với môn học
@@ -819,18 +883,31 @@ public class dashboardController {
     }
 
     private void handleAddCourse() {
-
         if (!validateCourseInput())
-            return; // Kiểm tra input hợp lệ
+            return;
 
         String courseID = txtSubjectID.getText().trim();
         String courseName = txtSubjectName.getText().trim();
         int credits = Integer.parseInt(txtCredits.getText().trim());
-        String lecturer = cbLecturer.getValue();
+        String selectedLecturer = cbLecturer.getValue();
+
+        if (selectedLecturer.equals("Chọn") || selectedLecturer == null) {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn giảng viên!");
+            return;
+        }
+
+        // Tách lấy mã giảng viên từ "GV001 - TS. Nguyễn Văn A"
+        String lecturerID = selectedLecturer.split(" - ")[0];
+
+        // Kiểm tra xem lecturer_id có tồn tại không
+        if (!isLecturerIDExists(lecturerID)) {
+            AlertComponent.showError("Lỗi", null, "Mã giảng viên không tồn tại!");
+            return;
+        }
+
         String semester = cbSemester.getValue();
         String status = cbStatus.getValue();
 
-        // Kiểm tra trùng mã môn học
         if (isCourseIDExists(courseID)) {
             AlertComponent.showWarning("Lỗi", null, "Mã môn học đã tồn tại!");
             return;
@@ -844,18 +921,16 @@ public class dashboardController {
             preparedStatement.setString(1, courseID);
             preparedStatement.setString(2, courseName);
             preparedStatement.setInt(3, credits);
-            preparedStatement.setString(4, lecturer);
+            preparedStatement.setString(4, lecturerID); // Lưu lecturer_id thay vì lecturer_name
             preparedStatement.setString(5, semester);
             preparedStatement.setString(6, status);
 
             int rowsInserted = preparedStatement.executeUpdate();
             if (rowsInserted > 0) {
                 AlertComponent.showInformation("Thành công", null, "Môn học đã được thêm thành công!");
-                showCoursesList(); // Cập nhật danh sách môn học
-
+                showCoursesList();
                 updateStudentSubjectsComboBox();
-
-                clearFormSubject(); // Xóa form nhập
+                clearFormSubject();
             } else {
                 AlertComponent.showError("Lỗi", null, "Không thể thêm môn học!");
             }
@@ -962,7 +1037,6 @@ public class dashboardController {
 
     // Phương thức cập nhật môn học
     private void handleUpdateCourse() {
-        // Lấy môn học được chọn từ TableView
         CourseData selectedCourse = tblSubjects.getSelectionModel().getSelectedItem();
 
         if (selectedCourse == null) {
@@ -970,67 +1044,56 @@ public class dashboardController {
             return;
         }
 
-        // Kiểm tra nếu có trường nào bị bỏ trống
-        if (txtSubjectName.getText().trim().isEmpty() ||
-                txtCredits.getText().trim().isEmpty() ||
-                cbLecturer.getValue() == null || cbLecturer.getValue().equals("Chọn") ||
-                cbSemester.getValue() == null || cbSemester.getValue().equals("Chọn") ||
-                cbStatus.getValue() == null || cbStatus.getValue().equals("Chọn")) {
+        if (!validateCourseInput())
+            return;
 
-            AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Vui lòng điền đầy đủ thông tin môn học!");
+        String courseID = selectedCourse.getSubjectID();
+        String courseName = txtSubjectName.getText().trim();
+        int credits = Integer.parseInt(txtCredits.getText().trim());
+        String selectedLecturer = cbLecturer.getValue();
+
+        if (selectedLecturer.equals("Chọn") || selectedLecturer == null) {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn giảng viên!");
             return;
         }
 
-        // Kiểm tra số tín chỉ phải là số nguyên dương
-        int credits;
-        try {
-            credits = Integer.parseInt(txtCredits.getText().trim());
-            if (credits <= 0) {
-                AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Số tín chỉ phải là số nguyên dương!");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Số tín chỉ phải là số nguyên dương!");
+        // Nếu giảng viên không thay đổi, lấy `lecturer_id` từ `UserData`
+        String lecturerID = (String) cbLecturer.getUserData();
+
+        // Nếu người dùng chọn lại giảng viên, lấy `lecturer_id` từ chuỗi "GV001 - TS.
+        // Nguyễn Văn A"
+        if (cbLecturer.getSelectionModel().getSelectedIndex() != -1) {
+            lecturerID = selectedLecturer.split(" - ")[0];
+        }
+
+        // Kiểm tra xem `lecturer_id` có tồn tại không
+        if (!isLecturerIDExists(lecturerID)) {
+            AlertComponent.showError("Lỗi", null, "Mã giảng viên không tồn tại!");
             return;
         }
 
-        // Kiểm tra tên môn học có bị trùng không (trừ môn học đang chỉnh sửa)
-        String checkQuery = "SELECT COUNT(*) FROM courses WHERE course_name = ? AND course_id != ?";
-        connect = database.connectDB();
-        try {
-            preparedStatement = connect.prepareStatement(checkQuery);
-            preparedStatement.setString(1, txtSubjectName.getText().trim());
-            preparedStatement.setString(2, selectedCourse.getSubjectID());
-            resultSet = preparedStatement.executeQuery();
-            resultSet.next();
+        String semester = cbSemester.getValue();
+        String status = cbStatus.getValue();
 
-            if (resultSet.getInt(1) > 0) {
-                AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Tên môn học đã tồn tại, vui lòng nhập tên khác!");
-                return;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Cập nhật dữ liệu môn học
         String updateQuery = "UPDATE courses SET course_name = ?, credits = ?, lecturer = ?, semester = ?, status = ? WHERE course_id = ?";
 
         try {
+            connect = database.connectDB();
             preparedStatement = connect.prepareStatement(updateQuery);
-            preparedStatement.setString(1, txtSubjectName.getText().trim());
+            preparedStatement.setString(1, courseName);
             preparedStatement.setInt(2, credits);
-            preparedStatement.setString(3, cbLecturer.getValue());
-            preparedStatement.setString(4, cbSemester.getValue());
-            preparedStatement.setString(5, cbStatus.getValue());
-            preparedStatement.setString(6, selectedCourse.getSubjectID());
+            preparedStatement.setString(3, lecturerID);
+            preparedStatement.setString(4, semester);
+            preparedStatement.setString(5, status);
+            preparedStatement.setString(6, courseID);
 
             int rowsUpdated = preparedStatement.executeUpdate();
             if (rowsUpdated > 0) {
                 AlertComponent.showInformation("Thành công", null, "Môn học đã được cập nhật!");
-                showCoursesList(); // Làm mới danh sách môn học
-                clearFormSubject(); // Xoá form nhập liệu
+                showCoursesList();
+                clearFormSubject();
             } else {
-                AlertComponent.showError("Lỗi", null, "Cập nhật môn học không thành công!");
+                AlertComponent.showError("Lỗi", null, "Không thể cập nhật môn học!");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1107,29 +1170,30 @@ public class dashboardController {
     }
 
     // Cập nhật giảng viên vào comboBox trong quản lý môn học
+    // Cập nhật giảng viên vào comboBox trong quản lý môn học
     private void updateLecturersInCourse() {
         ObservableList<String> lecturerList = FXCollections.observableArrayList();
-        String sql = "SELECT lecturer_name, degree, status FROM lecturers"; // Lấy cả tên, học vị và trạng thái
+        String sql = "SELECT lecturer_id, lecturer_name, degree, status FROM lecturers";
 
         connect = database.connectDB();
         try {
             preparedStatement = connect.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
+                String lecturerID = resultSet.getString("lecturer_id");
                 String lecturerName = resultSet.getString("lecturer_name");
                 String degree = resultSet.getString("degree");
-                String status = resultSet.getString("status"); // Lấy trạng thái của giảng viên
+                String status = resultSet.getString("status");
 
-                // Logic -> Nếu giảng viên nghỉ phép hoặc đã nghỉ hưu thì không thêm vào
-                // ComboBox
+                // Chỉ hiển thị giảng viên đang giảng dạy
                 if (status.equalsIgnoreCase("Nghỉ phép") || status.equalsIgnoreCase("Đã nghỉ hưu")) {
                     continue;
                 }
 
-                String formattedName = formatLecturerName(lecturerName, degree);
-                lecturerList.add(formattedName);
+                // Hiển thị tên giảng viên nhưng lưu lecturer_id
+                lecturerList.add(lecturerID + " - " + formatLecturerName(lecturerName, degree));
             }
-            cbLecturer.setItems(lecturerList); // Cập nhật ComboBox giảng viên trong Quản lý Môn học
+            cbLecturer.setItems(lecturerList);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1185,6 +1249,7 @@ public class dashboardController {
     }
 
     // Kiểm tra mã giảng viên đã tồn tại hay chưa?
+    // Kiểm tra xem lecturer_id có tồn tại trong bảng lecturers không
     private boolean isLecturerIDExists(String lecturerID) {
         String sql = "SELECT COUNT(*) FROM lecturers WHERE lecturer_id = ?";
         connect = database.connectDB();
@@ -1194,7 +1259,7 @@ public class dashboardController {
             preparedStatement.setString(1, lecturerID);
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next() && resultSet.getInt(1) > 0) {
-                return true;
+                return true; // Giảng viên tồn tại
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1208,7 +1273,7 @@ public class dashboardController {
                 e.printStackTrace();
             }
         }
-        return false;
+        return false; // Giảng viên không tồn tại
     }
 
     // Kiểm tra số điện thoại đã tồn tại chưa
@@ -1390,6 +1455,7 @@ public class dashboardController {
         }
     }
 
+    // Phương thức xoá giảng viên
     private void handleDeleteLecturer() {
         // Lấy giảng viên được chọn từ TableView
         LecturerData selectedLecturer = tableLecturer.getSelectionModel().getSelectedItem();
@@ -1435,6 +1501,7 @@ public class dashboardController {
         }
     }
 
+    // Phương thức xoá toàn bộ giảng viên
     private void handleClearAllLecturer() {
         if (tableLecturer.getItems().isEmpty()) {
             AlertComponent.showWarning("Thông báo", null, "Không có giảng viên nào để xóa!");
@@ -1476,6 +1543,7 @@ public class dashboardController {
         }
     }
 
+    // Phương thức xoá toàn bộ dữ liệu trong form nhập liệu giảng viên
     private void handleClearFormLecturer() {
         // Xử lý các logic khi xoá form nhập liệu
         txtLecturerID.setDisable(false); // Mở khóa ô nhập mã giảng viên
@@ -1493,30 +1561,210 @@ public class dashboardController {
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
     // ========== QUẢN LÝ ĐIỂM ==========
+    private ObservableList<GradesData> gradesListData; // Dữ liệu điểm
 
-    private void setupTableColumns() {
+    // Lấy danh sách điểm số từ database
+    public ObservableList<GradesData> getGradesListData() {
+        ObservableList<GradesData> gradesList = FXCollections.observableArrayList();
+
+        String sql = """
+                    SELECT g.student_id, s.school_year, COALESCE(g.course_id, s.subject) AS course_id,
+                           c.course_name, g.midterm_grade, g.final_grade, g.total_grade
+                    FROM grades g
+                    JOIN students s ON g.student_id = s.student_id
+                    LEFT JOIN courses c ON COALESCE(g.course_id, s.subject) = c.course_id
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                gradesList.add(new GradesData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("school_year"),
+                        resultSet.getString("course_id"),
+                        resultSet.getString("course_name"),
+                        resultSet.getFloat("midterm_grade"),
+                        resultSet.getFloat("final_grade"),
+                        resultSet.getFloat("total_grade")));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return gradesList;
+    }
+
+    // Hiển thị danh sách điểm số lên TableView
+    public void showGradesList() {
+        gradesListData = getGradesListData();
+
         colStudentIDGrades.setCellValueFactory(new PropertyValueFactory<>("studentID"));
         colSchoolYearGrades.setCellValueFactory(new PropertyValueFactory<>("schoolYear"));
-        colSubjectGrades.setCellValueFactory(new PropertyValueFactory<>("subject"));
-        colMidtermGrade.setCellValueFactory(new PropertyValueFactory<>("midterm"));
-        colFinalGrade.setCellValueFactory(new PropertyValueFactory<>("finalExam"));
+        colSubjectGrades.setCellValueFactory(new PropertyValueFactory<>("courseName"));
+        colMidtermGrade.setCellValueFactory(new PropertyValueFactory<>("midtermGrade"));
+        colFinalGrade.setCellValueFactory(new PropertyValueFactory<>("finalGrade"));
         colTotalGrade.setCellValueFactory(new PropertyValueFactory<>("totalGrade"));
+
+        tableGrades.setItems(gradesListData);
     }
 
-    private void loadGradesData() {
-        // ObservableList<Grades> gradesList = FXCollections.observableArrayList();
+    // Load thông tin năm học & môn học của sinh viên
+    @FXML
+    private void loadStudentInfo() {
+        String studentID = txtStudentIDGrades.getText().trim();
+        if (studentID.isEmpty()) {
+            lblSchoolYearGrades.setText("-");
+            lblSubjectGrades.setText("-");
+            return;
+        }
 
-        // // Giả lập dữ liệu từ database
-        // gradesList.add(new Grades("SV001", "2023-2024", "Lập trình Java", 7.5, 8.0,
-        // 7.75));
-        // gradesList.add(new Grades("SV002", "2023-2024", "Cấu trúc dữ liệu", 6.0, 7.5,
-        // 6.75));
+        String sql = """
+                    SELECT s.school_year, s.subject, c.course_name
+                    FROM students s
+                    LEFT JOIN courses c ON s.subject = c.course_id
+                    WHERE s.student_id = ?
+                """;
 
-        // tableGrades.setItems(gradesList);
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, studentID);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    lblSchoolYearGrades.setText(resultSet.getString("school_year"));
+                    String courseName = resultSet.getString("course_name");
+                    lblSubjectGrades.setText(courseName != null ? courseName : "Chưa có môn học");
+                } else {
+                    lblSchoolYearGrades.setText("-");
+                    lblSubjectGrades.setText("-");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    // Kiểm tra sinh viên có tồn tại không
+    private boolean isStudentExists(String studentID) {
+        return checkExists("SELECT COUNT(*) FROM students WHERE student_id = ?", studentID);
+    }
+
+    // Kiểm tra điểm có tồn tại chưa
+    private boolean isGradeExists(String studentID, String courseID) {
+        return checkExists("SELECT COUNT(*) FROM grades WHERE student_id = ? AND course_id = ?", studentID, courseID);
+    }
+
+    // Kiểm tra sự tồn tại của dữ liệu (hàm dùng chung)
+    private boolean checkExists(String sql, String... params) {
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            for (int i = 0; i < params.length; i++) {
+                preparedStatement.setString(i + 1, params[i]);
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next() && resultSet.getInt(1) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Lấy course_id từ tên môn học
+    private String getCourseIDByName(String courseName) {
+        String sql = "SELECT course_id FROM courses WHERE course_name = ?";
+        return getSingleResult(sql, courseName);
+    }
+
+    // Hàm lấy 1 giá trị từ database (hàm dùng chung)
+    private String getSingleResult(String sql, String param) {
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, param);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Xử lý thêm điểm
     private void handleAddGrades() {
-        System.out.println("Add grades");
+        String studentID = txtStudentIDGrades.getText().trim();
+        String schoolYear = lblSchoolYearGrades.getText().trim();
+        String courseName = lblSubjectGrades.getText().trim(); // Lấy môn học từ label
+        String midtermText = txtMidtermGrade.getText().trim();
+        String finalText = txtFinalGrade.getText().trim();
+
+        if (studentID.isEmpty() || schoolYear.equals("-") || courseName.equals("-") ||
+                midtermText.isEmpty() || finalText.isEmpty()) {
+            AlertComponent.showWarning("Lỗi nhập liệu", null, "Vui lòng nhập đầy đủ thông tin điểm số!");
+            return;
+        }
+
+        // Kiểm tra định dạng điểm số
+        float midtermGrade, finalGrade;
+        try {
+            midtermGrade = Float.parseFloat(midtermText);
+            finalGrade = Float.parseFloat(finalText);
+            if (midtermGrade < 0 || midtermGrade > 10 || finalGrade < 0 || finalGrade > 10) {
+                AlertComponent.showWarning("Lỗi nhập liệu", null, "Điểm phải nằm trong khoảng 0 - 10!");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            AlertComponent.showWarning("Lỗi nhập liệu", null, "Điểm phải là số hợp lệ!");
+            return;
+        }
+
+        // Lấy course_id từ course_name
+        String courseID = getCourseIDByName(courseName);
+        if (courseID == null) {
+            AlertComponent.showError("Lỗi", null, "Không tìm thấy mã môn học trong hệ thống!");
+            return;
+        }
+
+        // Kiểm tra sinh viên có tồn tại không
+        if (!isStudentExists(studentID)) {
+            AlertComponent.showError("Lỗi", null, "Mã sinh viên không tồn tại trong hệ thống!");
+            return;
+        }
+
+        // Kiểm tra sinh viên đã có điểm môn học chưa
+        if (isGradeExists(studentID, courseID)) {
+            AlertComponent.showWarning("Lỗi", null, "Sinh viên đã có điểm môn học này!");
+            return;
+        }
+
+        // Tính điểm tổng kết nếu MySQL không tự động tính
+        float totalGrade = (midtermGrade * 0.4f) + (finalGrade * 0.6f);
+
+        // Cột total tự động tính
+        String sql = "INSERT INTO grades (student_id, school_year, course_id, midterm_grade, final_grade) VALUES (?, ?, ?, ?, ?)";
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, studentID);
+            preparedStatement.setString(2, schoolYear);
+            preparedStatement.setString(3, courseID);
+            preparedStatement.setFloat(4, midtermGrade);
+            preparedStatement.setFloat(5, finalGrade);
+
+            int rowsInserted = preparedStatement.executeUpdate();
+            if (rowsInserted > 0) {
+                AlertComponent.showInformation("Thành công", null, "Điểm đã được thêm thành công!");
+                showGradesList();
+                clearGradesForm();
+            } else {
+                AlertComponent.showError("Lỗi", null, "Không thể thêm điểm!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleUpdateGrades() {
