@@ -1,5 +1,7 @@
 package controller;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -52,10 +54,11 @@ public class studentController {
 
     @FXML
     public void initialize() {
+        loadSubjectsIntoComboBox();
+
         // Khởi tạo dữ liệu cho ComboBox
         cbGender.getItems().addAll("Chọn", "Nam", "Nữ");
         cbSchoolYear.getItems().addAll("Chọn", "Năm 1", "Năm 2", "Năm 3", "Năm 4");
-        cbSubject.getItems().addAll("Chọn", "Lập trình Java", "Lập trình C++", "Cơ sở dữ liệu", "Trí tuệ nhân tạo");
         cbMajor.getItems().addAll("Chọn", "Công nghệ thông tin", "Kinh tế", "Kỹ thuật", "Y khoa");
         cbStatus.getItems().addAll("Chọn", "Đang học", "Bảo lưu", "Nghỉ học", "Tốt nghiệp");
 
@@ -191,7 +194,7 @@ public class studentController {
     // Phương thức thêm sinh viên
     private void saveOrUpdateStudent() {
         connect = database.connectDB();
-    
+
         try {
             // Kiểm tra input trống
             if (txtMSSV.getText().isEmpty() || txtLastName.getText().isEmpty() || txtFirstName.getText().isEmpty()
@@ -201,15 +204,15 @@ public class studentController {
                 AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Vui lòng nhập đầy đủ thông tin!");
                 return;
             }
-    
+
             String sql;
             boolean isUpdating = isEditMode;
-    
+
             if (isUpdating) {
                 // Câu lệnh UPDATE
                 sql = "UPDATE students SET first_name=?, last_name=?, birth_date=?, gender=?, school_year=?, major=?, subject=?, status=?, photo_path=? WHERE student_id=?";
                 preparedStatement = connect.prepareStatement(sql);
-    
+
                 preparedStatement.setString(1, txtFirstName.getText());
                 preparedStatement.setString(2, txtLastName.getText());
                 preparedStatement.setDate(3, java.sql.Date.valueOf(dpBirthDate.getValue()));
@@ -218,11 +221,11 @@ public class studentController {
                 preparedStatement.setString(6, cbMajor.getValue());
                 preparedStatement.setString(7, cbSubject.getValue());
                 preparedStatement.setString(8, cbStatus.getValue());
-    
+
                 // Nếu có ảnh thì lưu đường dẫn
                 String imagePath = (selectedImageFile != null) ? selectedImageFile.getAbsolutePath() : "";
                 preparedStatement.setString(9, imagePath);
-    
+
                 preparedStatement.setString(10, txtMSSV.getText()); // WHERE student_id = ?
             } else {
                 // Kiểm tra nếu MSSV đã tồn tại trước khi thêm
@@ -231,16 +234,17 @@ public class studentController {
                 checkStatement.setString(1, txtMSSV.getText());
                 ResultSet resultSet = checkStatement.executeQuery();
                 resultSet.next();
-    
+
                 if (resultSet.getInt(1) > 0) { // Nếu MSSV đã tồn tại
-                    AlertComponent.showWarning("Lỗi nhập dữ liệu", null, "Mã số sinh viên đã tồn tại! Vui lòng nhập lại.");
+                    AlertComponent.showWarning("Lỗi nhập dữ liệu", null,
+                            "Mã số sinh viên đã tồn tại! Vui lòng nhập lại.");
                     return;
                 }
-    
+
                 // Câu lệnh INSERT
                 sql = "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, school_year, major, subject, status, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 preparedStatement = connect.prepareStatement(sql);
-    
+
                 preparedStatement.setString(1, txtMSSV.getText()); // MSSV (đã bị bỏ qua trước đây)
                 preparedStatement.setString(2, txtFirstName.getText());
                 preparedStatement.setString(3, txtLastName.getText());
@@ -250,12 +254,12 @@ public class studentController {
                 preparedStatement.setString(7, cbMajor.getValue());
                 preparedStatement.setString(8, cbSubject.getValue());
                 preparedStatement.setString(9, cbStatus.getValue());
-    
+
                 // Nếu có ảnh thì lưu đường dẫn
                 String imagePath = (selectedImageFile != null) ? selectedImageFile.getAbsolutePath() : "";
                 preparedStatement.setString(10, imagePath);
             }
-    
+
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
                 AlertComponent.showInformation("Thành công", null,
@@ -264,18 +268,20 @@ public class studentController {
             } else {
                 AlertComponent.showError("Lỗi", null, "Không thể cập nhật sinh viên!");
             }
-    
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                if (preparedStatement != null) preparedStatement.close();
-                if (connect != null) connect.close();
+                if (preparedStatement != null)
+                    preparedStatement.close();
+                if (connect != null)
+                    connect.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }    
+    }
 
     private void closeStudentForm() {
         Stage stage = (Stage) studentMainForm.getScene().getWindow();
@@ -287,5 +293,32 @@ public class studentController {
         setInputsDisabled(false); // Bật các input để chỉnh sửa
         txtMSSV.setDisable(true); // Không cho chỉnh sửa MSSV
         btnSaveStudent.setText("Lưu sinh viên"); // Đổi chữ nút thành "Lưu"
+    }
+
+    // Load danh sách môn học vào ComboBox
+    public void loadSubjectsIntoComboBox() {
+        ObservableList<String> subjectList = FXCollections.observableArrayList();
+        String sql = "SELECT course_name FROM courses WHERE status = 'Đang mở'"; // Chỉ lấy môn học "Đang mở"
+
+        connect = database.connectDB();
+        try {
+            preparedStatement = connect.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                subjectList.add(resultSet.getString("course_name"));
+            }
+            cbSubject.setItems(subjectList); // Cập nhật ComboBox chỉ với môn học "Đang mở"
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (preparedStatement != null)
+                    preparedStatement.close();
+                if (connect != null)
+                    connect.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

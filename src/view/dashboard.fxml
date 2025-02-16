@@ -238,7 +238,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="studentManageForm" layoutX="8.8" layoutY="5.0" prefHeight="542.0" prefWidth="874.0" styleClass="bg-line" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="9.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="5.0">
+                        <AnchorPane fx:id="studentManageForm" layoutX="8.8" layoutY="5.0" prefHeight="542.0" prefWidth="874.0" styleClass="bg-line" visible="false" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="9.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="5.0">
                            <children>
                               <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="528.0" prefWidth="874.0">
                                  <children>
@@ -327,7 +327,6 @@
                                           <Font name="Tahoma" size="14.0" />
                                        </font>
                                     </Label>
-                                    <TextField fx:id="txtLecturer" layoutX="128.0" layoutY="191.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
                                     <Label alignment="CENTER_RIGHT" layoutY="244.0" prefHeight="18.0" prefWidth="117.0" text="Học kỳ:" textAlignment="JUSTIFY">
                                        <font>
                                           <Font name="Tahoma" size="14.0" />
@@ -345,13 +344,7 @@
                                           <Font name="Tahoma Bold" size="18.0" />
                                        </font>
                                     </Label>
-                                    <Button fx:id="btnAddSubject" layoutX="26.0" layoutY="349.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
-                                       <styleClass>
-                                          <String fx:value="btn-add" />
-                                          <String fx:value="controls__btn" />
-                                       </styleClass>
-                                    </Button>
-                                    <Button fx:id="btnRefreshSubject" layoutX="156.0" layoutY="349.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                    <Button fx:id="btnAddSubject" layoutX="26.0" layoutY="349.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="251.0" text="Thêm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
@@ -376,6 +369,7 @@
                                        </styleClass>
                                     </Button>
                                     <Button fx:id="btnClearFormSubject" layoutX="156.0" layoutY="454.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
+                                    <ComboBox fx:id="cbLecturer" layoutX="128.0" layoutY="191.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
                                  </children>
                               </AnchorPane>
                               <AnchorPane layoutX="321.0" layoutY="7.0" prefHeight="535.0" prefWidth="564.0" styleClass="bg-line">
@@ -394,7 +388,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
@@ -436,16 +430,10 @@
                                           <Font name="Tahoma" size="14.0" />
                                        </font>
                                     </Label>
-                                    <ComboBox fx:id="cbLecturerGender" layoutX="123.0" layoutY="129.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
-                                    <ComboBox fx:id="cbLecturerDegree" layoutX="123.0" layoutY="173.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
-                                    <ComboBox fx:id="cbLecturerStatus" layoutX="123.0" layoutY="260.0" prefHeight="30.0" prefWidth="160.0" styleClass="textfield" />
-                                    <Button fx:id="btnAddLecturer" layoutX="27.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
-                                       <styleClass>
-                                          <String fx:value="btn-add" />
-                                          <String fx:value="controls__btn" />
-                                       </styleClass>
-                                    </Button>
-                                    <Button fx:id="btnRefreshLecturer" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                    <ComboBox fx:id="cbLecturerGender" layoutX="123.0" layoutY="129.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
+                                    <ComboBox fx:id="cbLecturerDegree" layoutX="123.0" layoutY="173.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
+                                    <ComboBox fx:id="cbLecturerStatus" layoutX="123.0" layoutY="260.0" prefHeight="30.0" prefWidth="160.0" promptText="Chọn" styleClass="textfield" />
+                                    <Button fx:id="btnAddLecturer" layoutX="27.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="251.0" text="Thêm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
