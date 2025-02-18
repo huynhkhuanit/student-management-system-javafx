@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ResourceBundle;
-import javax.security.auth.Subject;
 
 import components.AlertComponent;
+import components.CustomTooltip;
 import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,13 +27,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.stage.StageStyle;
 import java.sql.Statement;
-import java.util.Date;
-import java.time.LocalDate;
+import javafx.scene.control.Tooltip;
+import javafx.util.Duration;
+import javafx.scene.control.SplitPane; // SplitPane
 
 // model data
 import model.StudentData;
@@ -41,13 +40,11 @@ import model.CourseData;
 import model.GradesData;
 import model.LecturerData;
 import database.database;
-import controller.studentController;
 
 public class dashboardController {
     // Database tools
     private Connection connect;
     private PreparedStatement preparedStatement;
-    private Statement statement;
     private ResultSet resultSet;
 
     private static dashboardController instance;
@@ -285,13 +282,16 @@ public class dashboardController {
         logoutBtn.setOnAction(e -> logoutHandle());
 
         // ========== SHOW FORMS ==========
+        
         dashboardBtn.setOnAction(e -> switchForm(dashboardForm, dashboardBtn));
         studentManageBtn.setOnMouseClicked(e -> switchForm(studentManageForm, studentManageBtn));
         courseManageBtn.setOnMouseClicked(e -> switchForm(courseManageForm, courseManageBtn));
         lecturerManageBtn.setOnMouseClicked(e -> switchForm(lecturerManageForm, lecturerManageBtn));
         gradesManageBtn.setOnMouseClicked(e -> {
             switchForm(gradesManageForm, gradesManageBtn);
-            txtTotalGrade.setDisable(true);
+            txtTotalGrade.setEditable(false);
+            txtTotalGrade.setOpacity(0.5);
+            txtTotalGrade.setTooltip(CustomTooltip.createTooltip("✅ Tự động cập nhật dựa vào điểm giữa kỳ và cuối kỳ!"));
         });
         infoManageBtn.setOnMouseClicked(e -> switchForm(infoManageForm, infoManageBtn));
 

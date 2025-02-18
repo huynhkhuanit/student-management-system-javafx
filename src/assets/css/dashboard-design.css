@@ -342,3 +342,24 @@
     -fx-font-size: 14px;
     -fx-text-fill: #008940;
 }
+
+/* style.css */
+.text-field:disabled, .date-picker:disabled {
+    -fx-opacity: 1.0; /* Giữ độ trong suốt */
+    -fx-background-color: #f2f2f2; /* Màu nền xám nhạt */
+    -fx-text-fill: #333333; /* Màu chữ đậm hơn */
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+    -fx-border-radius: 5px;
+}
+
+/* ComboBox */
+.combo-box:disabled {
+    -fx-opacity: 1.0;
+    -fx-background-color: #f2f2f2;
+    -fx-border-color: linear-gradient(to bottom right, #0093e9 0%, #80d0c7 100%);
+}
+
+/* Nút bị vô hiệu hóa */
+.button:disabled {
+    -fx-opacity: 0.5;
+}

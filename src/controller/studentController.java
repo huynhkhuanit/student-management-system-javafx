@@ -148,6 +148,7 @@ public class studentController {
         setInputsDisabled(true);
     }
 
+    // Phương thức vô hiệu hóa hoặc kích hoạt các input
     private void setInputsDisabled(boolean disable) {
         txtMSSV.setDisable(disable);
         txtLastName.setDisable(disable);
@@ -191,7 +192,6 @@ public class studentController {
         }
     }
 
-    // Phương thức thêm sinh viên
     // Phương thức thêm/cập nhật sinh viên
     private void saveOrUpdateStudent() {
         connect = database.connectDB();
@@ -305,6 +305,7 @@ public class studentController {
         }
     }
 
+    // Cập nhật môn học trong bảng điểm
     private void updateGradesSubject(String studentID, String newCourseID) {
         String sql = "UPDATE grades SET course_id = ? WHERE student_id = ?";
 
@@ -326,11 +327,13 @@ public class studentController {
         }
     }
 
+    // Đóng fom
     private void closeStudentForm() {
         Stage stage = (Stage) studentMainForm.getScene().getWindow();
         stage.close();
     }
 
+    // Kích hoạt chế độ chỉnh sửa
     public void enableEditMode() {
         isEditMode = true;
         setInputsDisabled(false); // Bật các input để chỉnh sửa

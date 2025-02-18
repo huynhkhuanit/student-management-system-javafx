@@ -1,0 +1,1 @@
+1. Hoàn thành component tooltip -> Gán thành công cho button txtTotalGrade.
