@@ -289,7 +289,10 @@ public class dashboardController {
         studentManageBtn.setOnMouseClicked(e -> switchForm(studentManageForm, studentManageBtn));
         courseManageBtn.setOnMouseClicked(e -> switchForm(courseManageForm, courseManageBtn));
         lecturerManageBtn.setOnMouseClicked(e -> switchForm(lecturerManageForm, lecturerManageBtn));
-        gradesManageBtn.setOnMouseClicked(e -> switchForm(gradesManageForm, gradesManageBtn));
+        gradesManageBtn.setOnMouseClicked(e -> {
+            switchForm(gradesManageForm, gradesManageBtn);
+            txtTotalGrade.setDisable(true);
+        });
         infoManageBtn.setOnMouseClicked(e -> switchForm(infoManageForm, infoManageBtn));
 
         // ========== SHOW FORMS ==========
