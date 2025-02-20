@@ -16,6 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.AnchorPane;
@@ -75,16 +76,27 @@ public class dashboardController {
     @FXML
     private ResourceBundle resources;
 
+    @FXML
+    private Label mainUsername;
+
     // ========== DASHBOARD PROPERTY ==========
 
     @FXML
     private Label totalStudentsLabel, totalMaleStudentsLabel, totalFemaleStudentsLabel;
     @FXML
-    private AreaChart<?, ?> avgScoreChart;
+    private AreaChart<String, Number> avgScoreChart;
     @FXML
-    private LineChart<?, ?> yearlyStatsChart;
+    private LineChart<String, Number> yearlyStatsChart;
     @FXML
-    private BarChart<?, ?> totalStudentsChart;
+    private BarChart<String, Number> totalStudentsChart;
+
+    @FXML
+    public void refreshDashboard() {
+        updateStudentStatistics();
+        loadTotalStudentsChart();
+        loadAvgScoreChart();
+        loadYearlyStatsChart();
+    }
 
     // ========== DASHBOARD PROPERTY ==========
 
@@ -184,10 +196,6 @@ public class dashboardController {
     private Button btnAddLecturer, btnDeleteLecturer, btnClearAllLecturer, btnUpdateLecturer,
             btnClearFormLecturer;
 
-    // - Cần tạo một đối tượng Lecturer
-    // private ObservableList<Lecturer> lecturerList =
-    // FXCollections.observableArrayList();
-
     // =========== QUẢN LÝ GIẢNG VIÊN ===========
 
     // =========== QUẢN LÝ ĐIỂM ===========
@@ -201,7 +209,7 @@ public class dashboardController {
     private Label lblSchoolYearGrades, lblSubjectGrades;
 
     @FXML
-    private Button btnAddGrades, btnRefreshGrades, btnDeleteGrades, btnClearAllGrades, btnUpdateGrades,
+    private Button btnAddGrades, btnDeleteGrades, btnClearAllGrades, btnUpdateGrades,
             btnClearFormGrades, gradesManageBtn;
 
     @FXML
@@ -228,6 +236,13 @@ public class dashboardController {
 
     @FXML
     public void initialize() {
+        // Kiểm tra xem admin đã đăng nhập chưa
+        if (loginController.loggedInUsername != null) {
+            mainUsername.setText(loginController.loggedInUsername);
+        } else {
+            mainUsername.setText("Admin");
+        }
+
         // ========== Load dữ liệu từ database cho các bảng ==========
 
         addStudentsShowList(); // Load dữ liệu sinh viên
@@ -236,6 +251,21 @@ public class dashboardController {
         showGradesList(); // Load dữ liệu điểm
 
         updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox
+
+        // ========== Start - Thống kê dashboard ==========
+
+        updateStudentStatistics();
+        loadTotalStudentsChart();
+        loadAvgScoreChart();
+        loadYearlyStatsChart();
+
+        dashboardForm.visibleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                refreshDashboard(); // Cập nhật Dashboard khi hiển thị
+            }
+        });
+
+        // ========== End - Thống kê dashboard ==========
 
         // ========== Load dữ liệu từ database cho các bảng ==========
 
@@ -282,7 +312,7 @@ public class dashboardController {
         logoutBtn.setOnAction(e -> logoutHandle());
 
         // ========== SHOW FORMS ==========
-        
+
         dashboardBtn.setOnAction(e -> switchForm(dashboardForm, dashboardBtn));
         studentManageBtn.setOnMouseClicked(e -> switchForm(studentManageForm, studentManageBtn));
         courseManageBtn.setOnMouseClicked(e -> switchForm(courseManageForm, courseManageBtn));
@@ -291,7 +321,8 @@ public class dashboardController {
             switchForm(gradesManageForm, gradesManageBtn);
             txtTotalGrade.setEditable(false);
             txtTotalGrade.setOpacity(0.5);
-            txtTotalGrade.setTooltip(CustomTooltip.createTooltip("✅ Tự động cập nhật dựa vào điểm giữa kỳ và cuối kỳ!"));
+            txtTotalGrade
+                    .setTooltip(CustomTooltip.createTooltip("✅ Tự động cập nhật dựa vào điểm giữa kỳ và cuối kỳ!"));
         });
         infoManageBtn.setOnMouseClicked(e -> switchForm(infoManageForm, infoManageBtn));
 
@@ -379,11 +410,14 @@ public class dashboardController {
         // Sự kiện nút xóa toàn bộ điểm
         btnClearAllGrades.setOnAction(e -> handleClearAllGrades());
 
-        // Sự kiện nút làm mới form
-        btnRefreshGrades.setOnAction(e -> handleRefreshGrades());
-
         // Sự kiện nút xóa thông tin nhập liệu
         btnClearFormGrades.setOnAction(e -> clearGradesForm());
+
+        tableGrades.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) { // Nhấp đôi - đúp chuột
+                fillFormWithSelectedGrade();
+            }
+        });
 
         // ========== QUẢN LÝ ĐIỂM ==========
 
@@ -468,6 +502,115 @@ public class dashboardController {
     }
 
     // - Tong quan -
+
+    // ========== THỐNG KÊ DỮ LIỆU ==========
+
+    private void updateStudentStatistics() {
+        String totalQuery = "SELECT COUNT(*) AS total FROM students";
+        String maleQuery = "SELECT COUNT(*) AS total FROM students WHERE gender = 'Nam'";
+        String femaleQuery = "SELECT COUNT(*) AS total FROM students WHERE gender = 'Nữ'";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement totalStmt = connect.prepareStatement(totalQuery);
+                PreparedStatement maleStmt = connect.prepareStatement(maleQuery);
+                PreparedStatement femaleStmt = connect.prepareStatement(femaleQuery)) {
+
+            ResultSet totalResult = totalStmt.executeQuery();
+            if (totalResult.next()) {
+                totalStudentsLabel.setText(String.valueOf(totalResult.getInt("total")));
+            }
+
+            ResultSet maleResult = maleStmt.executeQuery();
+            if (maleResult.next()) {
+                totalMaleStudentsLabel.setText(String.valueOf(maleResult.getInt("total")));
+            }
+
+            ResultSet femaleResult = femaleStmt.executeQuery();
+            if (femaleResult.next()) {
+                totalFemaleStudentsLabel.setText(String.valueOf(femaleResult.getInt("total")));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load biểu đồ tổng sinh viên theo ngành
+    private void loadTotalStudentsChart() {
+        String query = "SELECT major, COUNT(*) AS total FROM students GROUP BY major";
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Tổng sinh viên theo ngành");
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String major = resultSet.getString("major");
+                int total = resultSet.getInt("total");
+                series.getData().add(new XYChart.Data<>(major, total));
+            }
+
+            totalStudentsChart.getData().clear();
+            totalStudentsChart.getData().add(series);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load biểu đồ điểm rung bình của sinh viên
+    private void loadAvgScoreChart() {
+        String query = "SELECT school_year, AVG(total_grade) AS avg_score FROM grades GROUP BY school_year";
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Điểm trung bình theo năm");
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String year = resultSet.getString("school_year");
+                double avgScore = resultSet.getDouble("avg_score");
+                series.getData().add(new XYChart.Data<>(year, avgScore));
+            }
+
+            avgScoreChart.getData().clear();
+            avgScoreChart.getData().add(series);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Biểu đồ thống kê số lượng sinh viên theo năm học
+    private void loadYearlyStatsChart() {
+        String query = "SELECT school_year, COUNT(*) AS total FROM students GROUP BY school_year";
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Số lượng sinh viên theo năm học");
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String year = resultSet.getString("school_year");
+                int totalStudents = resultSet.getInt("total");
+                series.getData().add(new XYChart.Data<>(year, totalStudents));
+            }
+
+            yearlyStatsChart.getData().clear();
+            yearlyStatsChart.getData().add(series);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ========== THỐNG KÊ DỮ LIỆU ==========
 
     // ========== QUẢN LÝ SINH VIÊN ==========
 
@@ -953,37 +1096,42 @@ public class dashboardController {
 
     // Phương thức xoá một môn học khỏi danh sách
     private void handleDeleteCourse() {
-        CourseData selectedCourse = tblSubjects.getSelectionModel().getSelectedItem();
-
-        if (selectedCourse == null) {
-            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một môn học để xóa!");
-        }
-
-        boolean confirm = AlertComponent.showConfirmation("Xác nhận", null,
-                "Bạn có chắc chắn muốn xóa môn học: " + selectedCourse.getSubjectName() + "?");
-
-        if (!confirm)
-            return;
-
-        // Xóa trong database
-        String sql = "DELETE FROM courses WHERE course_id = ?";
-        connect = database.connectDB();
-
         try {
+            CourseData selectedCourse = tblSubjects.getSelectionModel().getSelectedItem();
+
+            // Kiểm tra nếu không có môn học nào được chọn
+            if (selectedCourse == null) {
+                AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một môn học để xóa!");
+                return;
+            }
+
+            // Hiển thị hộp thoại xác nhận
+            boolean confirm = AlertComponent.showConfirmation("Xác nhận", null,
+                    "Bạn có chắc chắn muốn xóa môn học: " + selectedCourse.getSubjectName() + "?");
+
+            if (!confirm)
+                return;
+
+            // Xóa môn học trong database
+            String sql = "DELETE FROM courses WHERE course_id = ?";
+            connect = database.connectDB();
+
             preparedStatement = connect.prepareStatement(sql);
             preparedStatement.setString(1, selectedCourse.getSubjectID());
+
             int rowsDeleted = preparedStatement.executeUpdate();
 
             if (rowsDeleted > 0) {
-                AlertComponent.showInformation("Thành công", null, "Môn học đã được xóa!");
-                showCoursesList();
-
-                updateStudentSubjectsComboBox();
+                AlertComponent.showInformation("Thành công", null, "Môn học đã được xóa thành công!");
+                showCoursesList(); // Cập nhật lại danh sách môn học
+                updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học của sinh viên
             } else {
                 AlertComponent.showError("Lỗi", null, "Không thể xóa môn học!");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
+            AlertComponent.showError("Lỗi", null, "Đã xảy ra lỗi khi xóa môn học!");
         } finally {
             try {
                 if (preparedStatement != null)
@@ -1762,6 +1910,7 @@ public class dashboardController {
                 AlertComponent.showInformation("Thành công", null, "Điểm đã được thêm thành công!");
                 showGradesList();
                 clearGradesForm();
+                dashboardController.getInstance().refreshDashboard(); // Cập nhật lại Dashboard
             } else {
                 AlertComponent.showError("Lỗi", null, "Không thể thêm điểm!");
             }
@@ -1770,20 +1919,172 @@ public class dashboardController {
         }
     }
 
+    // Xử lý cập nhật điểm
     private void handleUpdateGrades() {
-        System.out.println("Update grades");
+        String studentID = txtStudentIDGrades.getText().trim();
+        String courseName = lblSubjectGrades.getText().trim();
+        String midtermText = txtMidtermGrade.getText().trim();
+        String finalText = txtFinalGrade.getText().trim();
+
+        if (studentID.isEmpty() || courseName.equals("-") || midtermText.isEmpty() || finalText.isEmpty()) {
+            AlertComponent.showWarning("Lỗi nhập liệu", null, "Vui lòng nhập đầy đủ thông tin điểm số!");
+            return;
+        }
+
+        // Kiểm tra điểm có hợp lệ không
+        float midtermGrade, finalGrade;
+        try {
+            midtermGrade = Float.parseFloat(midtermText);
+            finalGrade = Float.parseFloat(finalText);
+            if (midtermGrade < 0 || midtermGrade > 10 || finalGrade < 0 || finalGrade > 10) {
+                AlertComponent.showWarning("Lỗi nhập liệu", null, "Điểm phải nằm trong khoảng 0 - 10!");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            AlertComponent.showWarning("Lỗi nhập liệu", null, "Điểm phải là số hợp lệ!");
+            return;
+        }
+
+        // Lấy course_id từ tên môn học
+        String courseID = getCourseIDByName(courseName);
+        if (courseID == null) {
+            AlertComponent.showError("Lỗi", null, "Không tìm thấy mã môn học trong hệ thống!");
+            return;
+        }
+
+        // Kiểm tra xem điểm đã tồn tại chưa
+        if (!isGradeExists(studentID, courseID)) {
+            AlertComponent.showError("Lỗi", null, "Không tìm thấy điểm của sinh viên này!");
+            return;
+        }
+
+        // Tính lại điểm tổng
+        float totalGrade = (midtermGrade * 0.4f) + (finalGrade * 0.6f);
+
+        // Cập nhật điểm vào database
+        String sql = """
+                    UPDATE grades
+                    SET midterm_grade = ?, final_grade = ?
+                    WHERE student_id = ? AND course_id = ?
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setFloat(1, midtermGrade);
+            preparedStatement.setFloat(2, finalGrade);
+            preparedStatement.setString(3, studentID);
+            preparedStatement.setString(4, courseID);
+
+            int rowsUpdated = preparedStatement.executeUpdate();
+            if (rowsUpdated > 0) {
+                AlertComponent.showInformation("Thành công", null, "Cập nhật điểm thành công!");
+                showGradesList();
+                clearGradesForm();
+                dashboardController.getInstance().refreshDashboard(); // Cập nhật lại Dashboard
+            } else {
+                AlertComponent.showError("Lỗi", null, "Không thể cập nhật điểm!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
+    // Tính năng xoá điểm
     private void handleDeleteGrades() {
-        System.out.println("Delete grades");
+        // Kiểm tra xem có sinh viên nào được chọn trong bảng không
+        GradesData selectedGrade = tableGrades.getSelectionModel().getSelectedItem();
+
+        // Nếu không có dữ liệu nhập, lấy từ TableView
+        String studentID = txtStudentIDGrades.getText().trim();
+        String courseName = lblSubjectGrades.getText().trim();
+
+        if (studentID.isEmpty() && selectedGrade != null) {
+            studentID = selectedGrade.getStudentID();
+            courseName = selectedGrade.getCourseName();
+        }
+
+        // Kiểm tra nếu không có dữ liệu hợp lệ
+        if (studentID.isEmpty() || courseName.equals("-")) {
+            AlertComponent.showWarning("Lỗi nhập liệu", null,
+                    "Vui lòng nhập MSSV và chọn môn học hoặc chọn trong bảng!");
+            return;
+        }
+
+        // Lấy course_id từ tên môn học
+        String courseID = getCourseIDByName(courseName);
+        if (courseID == null) {
+            AlertComponent.showError("Lỗi", null, "Không tìm thấy mã môn học trong hệ thống!");
+            return;
+        }
+
+        // Kiểm tra xem điểm có tồn tại không
+        if (!isGradeExists(studentID, courseID)) {
+            AlertComponent.showError("Lỗi", null, "Không tìm thấy điểm của sinh viên này!");
+            return;
+        }
+
+        // Hỏi xác nhận trước khi xóa
+        if (!AlertComponent.showConfirmation("Xóa điểm", null, "Bạn có chắc chắn muốn xóa điểm này?")) {
+            return;
+        }
+
+        // Xóa điểm trong database
+        String sql = "DELETE FROM grades WHERE student_id = ? AND course_id = ?";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, studentID);
+            preparedStatement.setString(2, courseID);
+
+            int rowsDeleted = preparedStatement.executeUpdate();
+            if (rowsDeleted > 0) {
+                AlertComponent.showInformation("Thành công", null, "Xóa điểm thành công!");
+                showGradesList();
+                clearGradesForm();
+                dashboardController.getInstance().refreshDashboard(); // Cập nhật lại Dashboard
+            } else {
+                AlertComponent.showError("Lỗi", null, "Không thể xóa điểm!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    // Tính năng xoá toàn bộ điểm của sinh viên
     private void handleClearAllGrades() {
-        System.out.println("Clear all grades");
-    }
+        // Hỏi xác nhận trước khi xóa (Cảnh báo nguy hiểm)
+        if (!AlertComponent.showConfirmation("Cảnh báo nguy hiểm", null,
+                "Bạn sắp xóa toàn bộ điểm số của tất cả sinh viên!\n" +
+                        "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục?")) {
+            return;
+        }
 
-    private void handleRefreshGrades() {
-        System.out.println("Refresh grades");
+        // Xóa toàn bộ dữ liệu từ bảng `grades`
+        String deleteAllGradesSQL = "DELETE FROM grades";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement deleteGradesStmt = connect.prepareStatement(deleteAllGradesSQL)) {
+
+            int rowsDeleted = deleteGradesStmt.executeUpdate();
+
+            if (rowsDeleted > 0) {
+                AlertComponent.showInformation("Thành công", null,
+                        "Đã xóa toàn bộ điểm của tất cả sinh viên thành công!");
+            } else {
+                AlertComponent.showWarning("Thông báo", null,
+                        "Không có điểm nào để xóa.");
+            }
+
+            showGradesList(); // Cập nhật danh sách điểm trên TableView
+            clearGradesForm(); // Xóa nội dung form
+            dashboardController.getInstance().refreshDashboard(); // Cập nhật lại Dashboard
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertComponent.showError("Lỗi", null, "Không thể xóa điểm!");
+        }
     }
 
     private void clearGradesForm() {
@@ -1793,61 +2094,69 @@ public class dashboardController {
         txtMidtermGrade.clear();
         txtFinalGrade.clear();
         txtTotalGrade.clear();
+
+        // Hiện add
+        btnAddGrades.setDisable(false);
+    }
+
+    private void fillFormWithSelectedGrade() {
+        // Ẩn add
+        btnAddGrades.setDisable(true);
+
+        GradesData selectedGrade = tableGrades.getSelectionModel().getSelectedItem();
+        if (selectedGrade == null) {
+            AlertComponent.showWarning("Thông báo", null, "Vui lòng chọn một sinh viên trong bảng!");
+            return;
+        }
+
+        // Điền dữ liệu vào form
+        txtStudentIDGrades.setText(selectedGrade.getStudentID());
+        lblSchoolYearGrades.setText(selectedGrade.getSchoolYear());
+        lblSubjectGrades.setText(selectedGrade.getCourseName());
+        txtMidtermGrade.setText(String.valueOf(selectedGrade.getMidtermGrade()));
+        txtFinalGrade.setText(String.valueOf(selectedGrade.getFinalGrade()));
+
     }
 
     // ========== QUẢN LÝ ĐIỂM ==========
 
     // ========== THÔNG TIN ==========
 
+    private void showForm(AnchorPane selectedForm) {
+        // Ẩn tất cả các form
+        versionForm.setVisible(false);
+        teamForm.setVisible(false);
+        technologyForm.setVisible(false);
+        clauseForm.setVisible(false);
+        questionForm.setVisible(false);
+
+        // Hiển thị form được chọn
+        selectedForm.setVisible(true);
+    }
+
+    // Phiên bản
     private void versionBtnHandle() {
-        if (teamForm.isVisible() || technologyForm.isVisible() || clauseForm.isVisible() || questionForm.isVisible()) {
-            questionForm.setVisible(false);
-            teamForm.setVisible(false);
-            technologyForm.setVisible(false);
-            clauseForm.setVisible(false);
-        }
-        versionForm.setVisible(true);
+        showForm(versionForm);
     }
 
+    // Đội ngũ phát triển
     private void teamBtnHandle() {
-        if (versionForm.isVisible() || technologyForm.isVisible() || clauseForm.isVisible()
-                || questionForm.isVisible()) {
-            questionForm.setVisible(false);
-            versionForm.setVisible(false);
-            technologyForm.setVisible(false);
-            clauseForm.setVisible(false);
-        }
-        teamForm.setVisible(true);
+        showForm(teamForm);
     }
 
+    // Công nghệ sử dụng
     private void technologyBtnHandle() {
-        if (versionForm.isVisible() || teamForm.isVisible() || clauseForm.isVisible() || questionForm.isVisible()) {
-            versionForm.setVisible(false);
-            teamForm.setVisible(false);
-            clauseForm.setVisible(false);
-            questionForm.setVisible(false);
-        }
-        technologyForm.setVisible(true);
+        showForm(technologyForm);
     }
 
+    // Điều khoản sử dụng
     private void clauseBtnHandle() {
-        if (versionForm.isVisible() || teamForm.isVisible() || technologyForm.isVisible() || questionForm.isVisible()) {
-            versionForm.setVisible(false);
-            teamForm.setVisible(false);
-            technologyForm.setVisible(false);
-            questionForm.setVisible(false);
-        }
-        clauseForm.setVisible(true);
+        showForm(clauseForm);
     }
 
+    // Câu hỏi thường gặp
     private void questionBtnHandle() {
-        if (versionForm.isVisible() || teamForm.isVisible() || technologyForm.isVisible() || clauseForm.isVisible()) {
-            versionForm.setVisible(false);
-            teamForm.setVisible(false);
-            technologyForm.setVisible(false);
-            clauseForm.setVisible(false);
-        }
-        questionForm.setVisible(true);
+        showForm(questionForm);
     }
 
     // ========== THÔNG TIN ==========

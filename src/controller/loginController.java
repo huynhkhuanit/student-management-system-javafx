@@ -33,6 +33,9 @@ public class loginController {
     private PreparedStatement preparedStatement;
     private ResultSet resultSet;
 
+    // Lưu trữ tên người dùng đăng nhập
+    public static String loggedInUsername;
+
     @FXML
     public void initialize() {
         closeBtn.setOnAction(e -> {
@@ -61,6 +64,8 @@ public class loginController {
                 AlertComponent.showError("Đăng nhập thất bại", null, "Vui lòng điền đầy đủ thông tin!");
             } else {
                 if (resultSet.next()) {
+                    loggedInUsername = userNameField.getText(); // Lưu tên đăng nhập
+
                     AlertComponent.showInformation("Đăng nhập thành công", null, "Đăng nhập thành công!");
 
                     // Ẩn giao diện đăng nhập

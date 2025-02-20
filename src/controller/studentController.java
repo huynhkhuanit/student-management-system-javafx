@@ -279,6 +279,9 @@ public class studentController {
 
                 // Cập nhật danh sách sinh viên ngay lập tức
                 dashboardController.getInstance().addStudentsShowList();
+                
+                // Nếu đang cập nhật thông tin sinh viên
+                dashboardController.getInstance().refreshDashboard();
 
                 // iểm tra nếu sinh viên thay đổi môn học hoặc năm học -> cập nhật bảng điểm
                 if (isUpdating) {
@@ -318,9 +321,9 @@ public class studentController {
             int rowsUpdated = preparedStatement.executeUpdate();
             if (rowsUpdated > 0) {
                 // Alert thông báo
-                AlertComponent.showInformation("Thành công", null, "✅ Đã cập nhật môn học trong bảng điểm!");
+                AlertComponent.showInformation("Thành công", null, "Đã cập nhật môn học trong bảng điểm!");
             } else {
-                AlertComponent.showError("Lỗi", null, "⚠️ Không có bản ghi nào cần cập nhật!");
+                AlertComponent.showError("Lỗi", null, "Không có bản ghi nào cần cập nhật!");
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -54,7 +54,7 @@
                <left>
                   <AnchorPane prefHeight="555.0" prefWidth="213.0" BorderPane.alignment="CENTER">
                      <children>
-                        <AnchorPane layoutX="10.0" prefHeight="554.0" prefWidth="203.0" styleClass="nav-form" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane layoutX="2.0" prefHeight="554.0" prefWidth="228.0" styleClass="nav-form" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <FontAwesomeIcon fill="WHITE" glyphName="USER" layoutX="74.0" layoutY="86.0" size="7em" />
                               <Label layoutX="61.0" layoutY="104.0" text="Chào mừng," textFill="WHITE">
@@ -62,7 +62,7 @@
                                     <Font name="Tahoma" size="17.0" />
                                  </font>
                               </Label>
-                              <Label layoutX="37.0" layoutY="125.0" text="huynhkhuanit" textFill="WHITE">
+                              <Label fx:id="mainUsername" alignment="CENTER" layoutX="12.0" layoutY="133.0" prefHeight="25.0" prefWidth="187.0" text="huynhkhuanit" textFill="WHITE">
                                  <font>
                                     <Font name="Tahoma Bold" size="20.0" />
                                  </font>
@@ -120,7 +120,7 @@
                <center>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                      <children>
-                        <AnchorPane fx:id="dashboardForm" prefHeight="554.0" prefWidth="886.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="dashboardForm" prefHeight="554.0" prefWidth="886.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="7.0" prefHeight="538.0" prefWidth="873.0">
                                  <styleClass>
@@ -476,17 +476,11 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
-                                    <Button fx:id="btnAddGrades" layoutX="26.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
-                                       <styleClass>
-                                          <String fx:value="btn-add" />
-                                          <String fx:value="controls__btn" />
-                                       </styleClass>
-                                    </Button>
-                                    <Button fx:id="btnRefreshGrades" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Làm mới">
+                                    <Button fx:id="btnAddGrades" layoutX="28.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="251.0" text="Thêm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
