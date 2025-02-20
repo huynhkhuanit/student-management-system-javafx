@@ -12,6 +12,7 @@ Màu sắc giao diện.
 3. Cập nhật các tính năng (xoá, xoá toàn bộ, xoá thông tin, cập nhật) trong QL ĐIỂM.
 4. CÁC TÍNH NĂNG LIÊN QUAN TỚI THỐNG KÊ TRONG TRANG CHỦ.
 6. Xử lý đăng nhập hiển thị ADMIN USER nào đăng nhập
+7. Xây dựng tính năng tìm kiếm trong QUẢN LÝ ĐIỂM.
 
 ---
 
@@ -23,3 +24,4 @@ Màu sắc giao diện.
 4. CÁC TÍNH NĂNG LIÊN QUAN TỚI THỐNG KÊ TRONG TRANG CHỦ -> XONG
 5. BỎ tính năng làm mới trong QUẢN LÝ ĐIỂM -> XONG
 6. Xử lý đăng nhập hiển thị ADMIN USER nào đăng -> Xong
+7. Xây dựng tính năng tìm kiếm trong QUẢN LÝ ĐIỂM -> XONG

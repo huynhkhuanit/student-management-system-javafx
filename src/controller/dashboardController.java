@@ -1,13 +1,18 @@
 package controller;
 
+// Import thư viện
+
+// Database tools
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ResourceBundle;
 
+// JavaFX tools
 import components.AlertComponent;
 import components.CustomTooltip;
 import javafx.fxml.FXML;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -28,14 +33,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
-import java.sql.Statement;
-import javafx.scene.control.Tooltip;
-import javafx.util.Duration;
-import javafx.scene.control.SplitPane; // SplitPane
 
-// model data
+// Model data
 import model.StudentData;
 import model.CourseData;
 import model.GradesData;
@@ -59,19 +61,13 @@ public class dashboardController {
     }
 
     @FXML
-    private Button closeBtn;
-
-    @FXML
-    private Button dashboardBtn;
+    private Button closeBtn, dashboardBtn, minimizeBtn, logoutBtn;
 
     @FXML
     private AnchorPane dashboardForm;
 
     @FXML
     private StackPane mainDashboard;
-
-    @FXML
-    private Button minimizeBtn, logoutBtn;
 
     @FXML
     private ResourceBundle resources;
@@ -135,19 +131,7 @@ public class dashboardController {
     private HBox controlButtonsBox;
 
     @FXML
-    private Button btnAdd;
-
-    @FXML
-    private Button btnClearAll;
-
-    @FXML
-    private Button btnDelete;
-
-    @FXML
-    private Button btnRefresh;
-
-    @FXML
-    private Button btnUpdate;
+    private Button btnAdd, btnClearAll, btnDelete, btnRefresh, btnUpdate;
 
     // Ô tìm kiếm
     @FXML
@@ -236,6 +220,16 @@ public class dashboardController {
 
     @FXML
     public void initialize() {
+        // Set icon cho ứng dụng khi khởi động -> Code này sẽ được chạy khi ứng dụng tải
+        // giao diện xong
+        Platform.runLater(() -> {
+            Stage stage = (Stage) mainDashboard.getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("../assets/img/favicon-app.png")));
+        });
+
+        // Platform.runLater() -> Đảm bảo rằng code sẽ chạy sau khi ứng dụng tải xong
+        // giao diện (JavaFX) -> Cơ chế trì hoãn
+
         // Kiểm tra xem admin đã đăng nhập chưa
         if (loginController.loggedInUsername != null) {
             mainUsername.setText(loginController.loggedInUsername);
@@ -311,22 +305,29 @@ public class dashboardController {
         // Logout
         logoutBtn.setOnAction(e -> logoutHandle());
 
-        // ========== SHOW FORMS ==========
+        // ========== Start - SHOW FORMS ==========
 
-        dashboardBtn.setOnAction(e -> switchForm(dashboardForm, dashboardBtn));
-        studentManageBtn.setOnMouseClicked(e -> switchForm(studentManageForm, studentManageBtn));
-        courseManageBtn.setOnMouseClicked(e -> switchForm(courseManageForm, courseManageBtn));
-        lecturerManageBtn.setOnMouseClicked(e -> switchForm(lecturerManageForm, lecturerManageBtn));
+        dashboardBtn.setOnAction(e -> switchForm(dashboardForm, dashboardBtn)); // Mở form Dashboard
+        studentManageBtn.setOnMouseClicked(e -> switchForm(studentManageForm, studentManageBtn)); // Mở form quản lý
+                                                                                                  // sinh viên
+        courseManageBtn.setOnMouseClicked(e -> switchForm(courseManageForm, courseManageBtn)); // Mở form quản lý môn
+                                                                                               // học
+        lecturerManageBtn.setOnMouseClicked(e -> switchForm(lecturerManageForm, lecturerManageBtn)); // Mở form quản lý
+                                                                                                     // giảng viên
+
+        // Mở form quản lý điểm
         gradesManageBtn.setOnMouseClicked(e -> {
             switchForm(gradesManageForm, gradesManageBtn);
             txtTotalGrade.setEditable(false);
             txtTotalGrade.setOpacity(0.5);
             txtTotalGrade
-                    .setTooltip(CustomTooltip.createTooltip("✅ Tự động cập nhật dựa vào điểm giữa kỳ và cuối kỳ!"));
+                    .setTooltip(CustomTooltip.createTooltip("Tự động cập nhật dựa vào điểm giữa kỳ và cuối kỳ!"));
         });
+
+        // Mở form quản lý thông tin
         infoManageBtn.setOnMouseClicked(e -> switchForm(infoManageForm, infoManageBtn));
 
-        // ========== SHOW FORMS ==========
+        // ========== End - SHOW FORMS ==========
 
         // ========== QUẢN LÝ SINH VIÊN ==========
 
@@ -417,6 +418,11 @@ public class dashboardController {
             if (event.getClickCount() == 2) { // Nhấp đôi - đúp chuột
                 fillFormWithSelectedGrade();
             }
+        });
+
+        // Gọi phương thức tìm kiếm khi người dùng nhập MSSV
+        txtSearchGrades.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchGradesByStudentID(newValue.trim());
         });
 
         // ========== QUẢN LÝ ĐIỂM ==========
@@ -2116,6 +2122,51 @@ public class dashboardController {
         txtMidtermGrade.setText(String.valueOf(selectedGrade.getMidtermGrade()));
         txtFinalGrade.setText(String.valueOf(selectedGrade.getFinalGrade()));
 
+    }
+
+    // Tính năng tìm kiếm theo MSSV
+    private void searchGradesByStudentID(String studentID) {
+        // Nếu ô tìm kiếm trống, hiển thị toàn bộ danh sách điểm
+        if (studentID.isEmpty()) {
+            showGradesList();
+            return;
+        }
+
+        ObservableList<GradesData> filteredList = FXCollections.observableArrayList();
+
+        String sql = """
+                    SELECT g.student_id, s.school_year, COALESCE(g.course_id, s.subject) AS course_id,
+                           c.course_name, g.midterm_grade, g.final_grade, g.total_grade
+                    FROM grades g
+                    JOIN students s ON g.student_id = s.student_id
+                    LEFT JOIN courses c ON COALESCE(g.course_id, s.subject) = c.course_id
+                    WHERE g.student_id LIKE ?
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, "%" + studentID + "%"); // Tìm kiếm không phân biệt toàn bộ MSSV
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                filteredList.add(new GradesData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("school_year"),
+                        resultSet.getString("course_id"),
+                        resultSet.getString("course_name"),
+                        resultSet.getFloat("midterm_grade"),
+                        resultSet.getFloat("final_grade"),
+                        resultSet.getFloat("total_grade")));
+            }
+
+            // Hiển thị kết quả tìm kiếm lên bảng
+            tableGrades.setItems(filteredList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ========== QUẢN LÝ ĐIỂM ==========

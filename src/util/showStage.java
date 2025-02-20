@@ -3,6 +3,7 @@ package util;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -15,6 +16,9 @@ public class showStage {
             Scene scene = new Scene(root);
             stage.setTitle(title);
             stage.setScene(scene);
+
+            stage.getIcons().add(new Image(showStage.class.getResourceAsStream("../assets/img/favicon-app.png")));
+
             
             // Ẩn title bar mặc định của stages
             stage.initStyle(StageStyle.TRANSPARENT);

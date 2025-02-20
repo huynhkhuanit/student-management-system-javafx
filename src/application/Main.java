@@ -5,6 +5,7 @@ import javafx.scene.*;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.scene.image.Image;
 
 public class Main extends Application {
     private double xOffset = 0;
@@ -35,6 +36,9 @@ public class Main extends Application {
             scene.setOnMouseReleased(e -> {
                 primaryStage.setOpacity(1.0);
             });
+
+            // Favicons app
+            primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("../assets/img/favicon-app.png")));
 
             // Ẩn title bar
             primaryStage.initStyle(StageStyle.TRANSPARENT);
