@@ -523,6 +523,7 @@ public class dashboardController {
 
     // ========== THỐNG KÊ DỮ LIỆU ==========
 
+    // Cập nhật thống kê sinh viên
     private void updateStudentStatistics() {
         String totalQuery = "SELECT COUNT(*) AS total FROM students";
         String maleQuery = "SELECT COUNT(*) AS total FROM students WHERE gender = 'Nam'";
@@ -1170,6 +1171,7 @@ public class dashboardController {
         } else if (fileName.endsWith(".csv")) {
             importFromCsv(file);
         } else {
+            // Nếu file không hợp lệ, hiển thị cảnh báo
             AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
         }
     }
