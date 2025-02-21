@@ -104,7 +104,7 @@ CREATE TABLE `grades` (
   CONSTRAINT `grades_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE,
   CONSTRAINT `grades_chk_1` CHECK ((`midterm_grade` between 0 and 10)),
   CONSTRAINT `grades_chk_2` CHECK ((`final_grade` between 0 and 10))
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +113,7 @@ CREATE TABLE `grades` (
 
 LOCK TABLES `grades` WRITE;
 /*!40000 ALTER TABLE `grades` DISABLE KEYS */;
-INSERT INTO `grades` (`id`, `student_id`, `school_year`, `course_id`, `midterm_grade`, `final_grade`) VALUES (2,'2205CT0035','Năm 4','MH003',8,6),(3,'2205CT0055','Năm 4','MH004',7,8);
+INSERT INTO `grades` (`id`, `student_id`, `school_year`, `course_id`, `midterm_grade`, `final_grade`) VALUES (6,'2205CT0035','Năm 3','MH002',10,10),(7,'2205CT0055','Năm 1','MH004',10,10),(8,'2205CT0091','Năm 3','MH002',10,10);
 /*!40000 ALTER TABLE `grades` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,7 +178,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES ('2205CT0035','Huỳnh','Văn Khuân','2004-06-25','Nam','Năm 4','Công nghệ thông tin','MH003','Đang học','','2025-02-16 21:18:38','2025-02-16 22:00:30'),('2205CT0055','Mai','Trọng Quang','2004-03-25','Nam','Năm 4','Công nghệ thông tin','MH004','Đang học','','2025-02-16 21:43:15','2025-02-16 21:54:05');
+INSERT INTO `students` VALUES ('2205CT0035','Huỳnh','Văn Khuân','2004-06-25','Nam','Năm 3','Công nghệ thông tin','MH002','Đang học','','2025-02-20 19:07:38','2025-02-20 19:07:38'),('2205CT0055','Mai','Trọng Quang','2004-03-25','Nam','Năm 1','Công nghệ thông tin','MH004','Đang học','','2025-02-16 21:43:15','2025-02-20 20:02:04'),('2205CT0091','Nguyễn','Ngọc Quỳnh','2004-09-25','Nữ','Năm 3','Kinh tế','MH002','Đang học','','2025-02-20 19:40:38','2025-02-20 19:51:12');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -210,4 +210,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-02-17  5:01:12
+-- Dump completed on 2025-02-21  3:36:06
