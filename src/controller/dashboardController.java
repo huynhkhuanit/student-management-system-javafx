@@ -143,10 +143,11 @@ public class dashboardController {
     @FXML
     private TableColumn<StudentData, String> student_colStatus; // Cột Trạng thái
 
-    // 🔘 Khu vực chứa các nút điều khiển
+    // - Khu vực chứa các nút điều khiển
     @FXML
     private HBox controlButtonsBox;
 
+    // Các nút điều khiển của sinh viên
     @FXML
     private Button btnAdd, btnClearAll, btnDelete, btnRefresh, btnUpdate;
 
@@ -477,6 +478,7 @@ public class dashboardController {
         }
     }
 
+    // Xử lý nút đăng xuất
     private void logoutHandle() {
         try {
             // Thong bao xac nhan dang xuat
