@@ -1,11 +1,13 @@
 package model;
 
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat; // Thêm import này cho birthDate
 
 public class StudentData {
     private String studentID;
     private String firstName;
     private String lastName;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy") // Thêm annotation để xử lý birthDate
     private Date birthDate;
     private String gender;
     private String schoolYear;
@@ -14,7 +16,11 @@ public class StudentData {
     private String status;
     private String photoPath;
 
-    // Constructor
+    // Constructor mặc định (no-arg constructor) - THÊM VÀO ĐÂY
+    public StudentData() {
+    }
+
+    // Constructor có tham số (giữ nguyên)
     public StudentData(String studentID, String firstName, String lastName, Date birthDate, String gender, String schoolYear, String major, String subject, String status, String photoPath) {
         this.studentID = studentID;
         this.firstName = firstName;
@@ -28,7 +34,7 @@ public class StudentData {
         this.photoPath = photoPath;
     }
 
-    // Getters & Setters
+    // Getters & Setters (giữ nguyên)
     public String getStudentID() { return studentID; }
     public void setStudentID(String studentID) { this.studentID = studentID; }
 
@@ -59,7 +65,7 @@ public class StudentData {
     public String getPhotoPath() { return photoPath; }
     public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
 
-    // toString() method to debug ez
+    // toString() method to debug ez (giữ nguyên)
     @Override
     public String toString() {
         return "Student{" +

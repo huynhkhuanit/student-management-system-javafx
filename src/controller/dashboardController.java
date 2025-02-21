@@ -1,18 +1,27 @@
 package controller;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.nio.file.Paths;
+
 // Import thư viện
 
 // Database tools
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.ResourceBundle;
 
 // JavaFX tools
 import components.AlertComponent;
 import components.CustomTooltip;
 import javafx.fxml.FXML;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -26,6 +35,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import util.showStage;
 import javafx.scene.layout.StackPane;
@@ -33,9 +43,16 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.FileInputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 // Model data
 import model.StudentData;
@@ -100,7 +117,7 @@ public class dashboardController {
     @FXML
     private AnchorPane studentManageForm;
     @FXML
-    private Button studentManageBtn;
+    private Button studentManageBtn, btnImportStudents;
 
     // Bảng dữ liệu sinh viên
     @FXML
@@ -220,16 +237,6 @@ public class dashboardController {
 
     @FXML
     public void initialize() {
-        // Set icon cho ứng dụng khi khởi động -> Code này sẽ được chạy khi ứng dụng tải
-        // giao diện xong
-        Platform.runLater(() -> {
-            Stage stage = (Stage) mainDashboard.getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("../assets/img/favicon-app.png")));
-        });
-
-        // Platform.runLater() -> Đảm bảo rằng code sẽ chạy sau khi ứng dụng tải xong
-        // giao diện (JavaFX) -> Cơ chế trì hoãn
-
         // Kiểm tra xem admin đã đăng nhập chưa
         if (loginController.loggedInUsername != null) {
             mainUsername.setText(loginController.loggedInUsername);
@@ -350,6 +357,9 @@ public class dashboardController {
         btnClearAll.setOnAction(e -> handleDeleteAllStudents()); // Phương thức xóa toàn bộ sinh viên
         studentManageSearch.textProperty().addListener((observable, oldValue, newValue) -> searchStudent());
         // Tìm kiếm sinh viên
+
+        // Sự kiện mở form import sinh viên
+        btnImportStudents.setOnAction(event -> openFileChooser());
 
         // ========== QUẢN LÝ SINH VIÊN ==========
 
@@ -848,7 +858,319 @@ public class dashboardController {
         showStage.showWindows("../view/student_form.fxml", "");
     }
 
-    // MORE...
+    // Mở cửa sổ chọn file để nhập sinh viên
+    private void openFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn file sinh viên");
+
+        // Thêm các bộ lọc cho JSON, Excel, CSV, và All Files
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"), // Hiển thị tất cả file
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"),
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Đặt "All Files" làm bộ lọc mặc định để hiển thị tất cả file
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            processFile(file);
+        }
+    }
+
+    // Thêm sinh viên từ file JSON
+    private void importFromJson(File file) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<StudentData> students = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, StudentData.class));
+
+            int duplicateCount = 0; // Đếm số sinh viên trùng MSSV
+            int successCount = 0; // Đếm số sinh viên thêm thành công
+
+            for (StudentData student : students) {
+                try {
+                    insertStudentIntoDatabase(student);
+                    successCount++;
+                } catch (SQLException e) {
+                    if (e.getMessage().contains("MSSV")) {
+                        // Nếu lỗi là do trùng MSSV, tăng đếm và bỏ qua
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + student.getStudentID());
+                    } else {
+                        // Nếu lỗi khác (như course_id không tồn tại), ném ra ngoài
+                        throw e;
+                    }
+                }
+            }
+
+            // Tạo thông báo dựa trên kết quả
+            String message = "Đã thêm " + successCount + " sinh viên thành công từ JSON!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " sinh viên trùng MSSV đã bị bỏ qua.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            addStudentsShowList(); // Cập nhật lại TableView
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ JSON: " + e.getMessage());
+        }
+    }
+
+    // Xử lý cell trong file Excel
+    private String getCellStringValue(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return new SimpleDateFormat("MM/dd/yyyy").format(cell.getDateCellValue());
+                } else {
+                    return String.valueOf((int) cell.getNumericCellValue());
+                }
+            case BLANK:
+                return null;
+            default:
+                return null;
+        }
+    }
+
+    // Thêm sinh viên từ file Excel
+    private void importFromExcel(File file) {
+        try (FileInputStream fis = new FileInputStream(file);
+                Workbook workbook = new XSSFWorkbook(fis);
+                Connection connect = database.connectDB()) {
+
+            PreparedStatement preparedStatement = connect.prepareStatement(
+                    "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, " +
+                            "school_year, major, subject, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue;
+
+                try {
+                    String studentID = getCellStringValue(row.getCell(0));
+                    String firstName = getCellStringValue(row.getCell(1));
+                    String lastName = getCellStringValue(row.getCell(2));
+                    String birthDateStr = getCellStringValue(row.getCell(3));
+                    String gender = getCellStringValue(row.getCell(4));
+                    String schoolYear = getCellStringValue(row.getCell(5));
+                    String major = getCellStringValue(row.getCell(6));
+                    String subject = getCellStringValue(row.getCell(7));
+                    String status = getCellStringValue(row.getCell(8));
+
+                    if (studentID == null || firstName == null || lastName == null || birthDateStr == null ||
+                            gender == null || schoolYear == null || major == null || subject == null
+                            || status == null) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng " + (row.getRowNum() + 1));
+                    }
+
+                    java.sql.Date birthDate = new java.sql.Date(dateFormat.parse(birthDateStr).getTime());
+                    String courseID = getCourseIDByName(subject);
+                    if (courseID == null) {
+                        throw new SQLException("Không tìm thấy course_id cho môn học: " + subject);
+                    }
+
+                    if (!isStudentIDExists(studentID)) {
+                        preparedStatement.setString(1, studentID);
+                        preparedStatement.setString(2, firstName);
+                        preparedStatement.setString(3, lastName);
+                        preparedStatement.setDate(4, birthDate);
+                        preparedStatement.setString(5, gender);
+                        preparedStatement.setString(6, schoolYear);
+                        preparedStatement.setString(7, major);
+                        preparedStatement.setString(8, courseID);
+                        preparedStatement.setString(9, status);
+                        preparedStatement.addBatch();
+                        successCount++;
+                    } else {
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null,
+                            "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                }
+            }
+
+            if (successCount > 0) {
+                preparedStatement.executeBatch();
+            }
+
+            String message = "Đã nhập " + successCount + " sinh viên thành công từ Excel!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " sinh viên trùng MSSV bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi không thể nhập.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            addStudentsShowList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ Excel: " + e.getMessage());
+        }
+    }
+
+    // Xử lý file CSV
+    private void importFromCsv(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy"); // Định dạng ngày giống JSON/Excel
+
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+
+                try {
+                    String[] data = line.split(",");
+                    if (data.length < 9) {
+                        throw new IllegalArgumentException("Dữ liệu không đủ tại dòng hiện tại");
+                    }
+
+                    String studentID = data[0].trim();
+                    String firstName = data[1].trim();
+                    String lastName = data[2].trim();
+                    String birthDateStr = data[3].trim();
+                    String gender = data[4].trim();
+                    String schoolYear = data[5].trim();
+                    String major = data[6].trim();
+                    String subject = data[7].trim();
+                    String status = data[8].trim();
+
+                    if (studentID.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || birthDateStr.isEmpty() ||
+                            gender.isEmpty() || schoolYear.isEmpty() || major.isEmpty() || subject.isEmpty()
+                            || status.isEmpty()) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng hiện tại");
+                    }
+
+                    java.sql.Date birthDate;
+                    try {
+                        java.util.Date utilDate = dateFormat.parse(birthDateStr);
+                        birthDate = new java.sql.Date(utilDate.getTime());
+                    } catch (ParseException e) {
+                        throw new IllegalArgumentException("Định dạng ngày không hợp lệ tại dòng hiện tại");
+                    }
+
+                    StudentData student = new StudentData(studentID, firstName, lastName, birthDate,
+                            gender, schoolYear, major, subject, status, null);
+
+                    try {
+                        insertStudentIntoDatabase(student);
+                        successCount++;
+                    } catch (SQLException e) {
+                        if (e.getMessage().contains("MSSV")) {
+                            duplicateCount++;
+                            AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                        } else {
+                            throw e;
+                        }
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                }
+            }
+
+            String message = "Đã nhập " + successCount + " sinh viên thành công từ CSV!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " sinh viên trùng MSSV bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi không thể nhập.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            addStudentsShowList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ CSV: " + e.getMessage());
+        }
+    }
+
+    // Kiểm tra xem MSSV đã tồn tại chưa
+    private boolean isStudentIDExists(String studentID) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM students WHERE student_id = ?";
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+            preparedStatement.setString(1, studentID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0; // Trả về true nếu MSSV đã tồn tại
+            }
+        }
+        return false;
+    }
+
+    // Xử lý thêm sinh viên vào database
+    private void insertStudentIntoDatabase(StudentData student) throws SQLException {
+        String sql = "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, " +
+                "school_year, major, subject, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            String courseID = getCourseIDByName(student.getSubject());
+            if (courseID == null) {
+                throw new SQLException("Không tìm thấy course_id cho môn học: " + student.getSubject());
+            }
+
+            // Kiểm tra xem MSSV đã tồn tại chưa
+            if (isStudentIDExists(student.getStudentID())) {
+                throw new SQLException("MSSV " + student.getStudentID() + " đã tồn tại trong database.");
+            }
+
+            preparedStatement.setString(1, student.getStudentID());
+            preparedStatement.setString(2, student.getFirstName());
+            preparedStatement.setString(3, student.getLastName());
+            preparedStatement.setDate(4, new java.sql.Date(student.getBirthDate().getTime()));
+            preparedStatement.setString(5, student.getGender());
+            preparedStatement.setString(6, student.getSchoolYear());
+            preparedStatement.setString(7, student.getMajor());
+            preparedStatement.setString(8, courseID);
+            preparedStatement.setString(9, student.getStatus());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Không thể thêm sinh viên vào database.");
+            }
+        }
+    }
+
+    // Phương thức xử lý file nhập vào (JSON, Excel, CSV)
+    private void processFile(File file) {
+        String fileName = file.getName().toLowerCase();
+
+        if (fileName.endsWith(".json")) {
+            importFromJson(file);
+        } else if (fileName.endsWith(".xlsx")) {
+            importFromExcel(file);
+        } else if (fileName.endsWith(".csv")) {
+            importFromCsv(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
+        }
+    }
 
     // ========== QUẢN LÝ SINH VIÊN ==========
 
@@ -1831,7 +2153,17 @@ public class dashboardController {
     // Lấy course_id từ tên môn học
     private String getCourseIDByName(String courseName) {
         String sql = "SELECT course_id FROM courses WHERE course_name = ?";
-        return getSingleResult(sql, courseName);
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+            preparedStatement.setString(1, courseName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("course_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // Hàm lấy 1 giá trị từ database (hàm dùng chung)
