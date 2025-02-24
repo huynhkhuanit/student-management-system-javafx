@@ -1,0 +1,122 @@
+[
+    {
+        "studentID": "2205CT0013",
+        "firstName": "Nguyen",
+        "lastName": "Van A",
+        "birthDate": "02/24/2004",
+        "gender": "Nam",
+        "schoolYear": "Năm 3",
+        "major": "Công nghệ thông tin",
+        "subject": "Trí tuệ nhân tạo",
+        "status": "Đang học",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0014",
+        "firstName": "Tran",
+        "lastName": "Thi B",
+        "birthDate": "05/15/2003",
+        "gender": "Nữ",
+        "schoolYear": "Năm 4",
+        "major": "Kinh tế",
+        "subject": "Thiết kế hệ thống",
+        "status": "Đang học",
+        "photoPath": "C:/photos/tran_thi_b.jpg"
+    },
+    {
+        "studentID": "2205CT0015",
+        "firstName": "Le",
+        "lastName": "Van C",
+        "birthDate": "11/30/2005",
+        "gender": "Nam",
+        "schoolYear": "Năm 2",
+        "major": "Công nghệ thông tin",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Đang học",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0016",
+        "firstName": "Pham",
+        "lastName": "Thi D",
+        "birthDate": "07/10/2002",
+        "gender": "Nữ",
+        "schoolYear": "Năm 4",
+        "major": "Y khoa",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Tốt nghiệp",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0017",
+        "firstName": "Hoang",
+        "lastName": "Van E",
+        "birthDate": "03/22/2004",
+        "gender": "Nam",
+        "schoolYear": "Năm 3",
+        "major": "Kỹ thuật",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Bảo lưu",
+        "photoPath": "C:/photos/hoang_van_e.jpg"
+    },
+    {
+        "studentID": "2205CT0018",
+        "firstName": "Nguyen",
+        "lastName": "Thi F",
+        "birthDate": "09/05/2005",
+        "gender": "Nữ",
+        "schoolYear": "Năm 2",
+        "major": "Công nghệ thông tin",
+        "subject": "Lập trình Java",
+        "status": "Đang học",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0019",
+        "firstName": "Tran",
+        "lastName": "Van G",
+        "birthDate": "12/12/2003",
+        "gender": "Nam",
+        "schoolYear": "Năm 3",
+        "major": "Kinh tế",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Đang học",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0020",
+        "firstName": "Le",
+        "lastName": "Thi H",
+        "birthDate": "04/18/2004",
+        "gender": "Nữ",
+        "schoolYear": "Năm 3",
+        "major": "Y khoa",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Nghỉ học",
+        "photoPath": "C:/photos/le_thi_h.jpg"
+    },
+    {
+        "studentID": "2205CT0021",
+        "firstName": "Pham",
+        "lastName": "Van I",
+        "birthDate": "08/25/2005",
+        "gender": "Nam",
+        "schoolYear": "Năm 2",
+        "major": "Kỹ thuật",
+        "subject": "Cơ sở dữ liệu",
+        "status": "Đang học",
+        "photoPath": null
+    },
+    {
+        "studentID": "2205CT0022",
+        "firstName": "Hoang",
+        "lastName": "Thi K",
+        "birthDate": "01/01/2003",
+        "gender": "Nữ",
+        "schoolYear": "Năm 4",
+        "major": "Công nghệ thông tin",
+        "subject": "Cơ sở dữ liệudád",
+        "status": "Đang học",
+        "photoPath": null
+    }
+]
