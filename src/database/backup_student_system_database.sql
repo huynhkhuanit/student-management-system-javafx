@@ -76,7 +76,7 @@ CREATE TABLE `courses` (
 
 LOCK TABLES `courses` WRITE;
 /*!40000 ALTER TABLE `courses` DISABLE KEYS */;
-INSERT INTO `courses` VALUES ('MH001','Lập trình C#',3,'GV001','Học kỳ 1','Đang mở','2025-02-16 21:15:40','2025-02-16 21:29:22'),('MH002','Lập trình Java',3,'GV002','Học kỳ 1','Đang mở','2025-02-16 21:15:55','2025-02-16 21:21:08'),('MH003','Lập trình game',4,'GV002','Học kỳ 3','Đang mở','2025-02-16 21:42:48','2025-02-16 22:00:42'),('MH004','Lập trình website',3,'GV003','Học kỳ 3','Đang mở','2025-02-16 21:53:59','2025-02-16 21:57:23');
+INSERT INTO `courses` VALUES ('MH001','Lập trình Java',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH002','Cơ sở dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH003','Thiết kế hệ thống',3,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH004','Mạng máy tính',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH005','Kiến trúc phần mềm',3,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH006','Lập trình Web',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH007','Xử lý ảnh và video',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH008','Phát triển ứng dụng di động',3,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:06','2025-02-24 19:20:06'),('MH009','Hệ điều hành',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH010','Quản lý dự án phần mềm',4,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH011','Công nghệ Blockchain',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH012','Khoa học dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH013','Học máy',3,'GV001','Học kỳ 1','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH014','Trí tuệ nhân tạo',4,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07'),('MH015','Thực tập tốt nghiệp',6,'GV001','Học kỳ 2','Đang mở','2025-02-24 19:20:07','2025-02-24 19:20:07');
 /*!40000 ALTER TABLE `courses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -113,7 +113,6 @@ CREATE TABLE `grades` (
 
 LOCK TABLES `grades` WRITE;
 /*!40000 ALTER TABLE `grades` DISABLE KEYS */;
-INSERT INTO `grades` (`id`, `student_id`, `school_year`, `course_id`, `midterm_grade`, `final_grade`) VALUES (6,'2205CT0035','Năm 3','MH002',10,10),(7,'2205CT0055','Năm 1','MH004',10,10),(8,'2205CT0091','Năm 3','MH002',10,10);
 /*!40000 ALTER TABLE `grades` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -142,7 +141,7 @@ CREATE TABLE `lecturers` (
 
 LOCK TABLES `lecturers` WRITE;
 /*!40000 ALTER TABLE `lecturers` DISABLE KEYS */;
-INSERT INTO `lecturers` VALUES ('GV001','Nguyễn Thanh Tiến','Nam','Thạc sĩ','0123456789','Đang giảng dạy'),('GV002','Nguyễn Văn Dũng','Nam','Tiến sĩ','0943006018','Đang giảng dạy'),('GV003','Mai Đức Trung','Nam','Thạc sĩ','0123556452','Đang giảng dạy');
+INSERT INTO `lecturers` VALUES ('GV001','Trần Thị B','Nữ','Tiến sĩ','0123456789','Đang giảng dạy'),('GV002','Nguyễn Văn A','Nam','Tiến sĩ','0943006018','Đang giảng dạy'),('GV003','Lê Thị C','Nữ','Thạc sĩ','0987654321','Đang giảng dạy'),('GV004','Phạm Văn D','Nam','Tiến sĩ','0934567890','Đang giảng dạy'),('GV005','Hoàng Thị E','Nữ','Cử nhân','0912345678','Đang giảng dạy'),('GV006','Vũ Văn F','Nam','Phó giáo sư','0923456789','Đang giảng dạy'),('GV007','Đỗ Thị G','Nữ','Giáo sư','0956789012','Đang giảng dạy'),('GV008','Trần Văn H','Nam','Thạc sĩ','0967890123','Nghỉ phép'),('GV009','Nguyễn Thị I','Nữ','Tiến sĩ','0978901234','Đang giảng dạy'),('GV010','Lê Văn J','Nam','Cử nhân','0989012345','Đang giảng dạy'),('GV011','Phạm Thị K','Nữ','Phó giáo sư','0990123456','Nghỉ phép'),('GV012','Hoàng Văn L','Nam','Giáo sư','0911234567','Đang giảng dạy'),('GV013','Vũ Thị M','Nữ','Thạc sĩ','0922345678','Đã nghỉ hưu'),('GV014','Đỗ Văn N','Nam','Tiến sĩ','0933456789','Đang giảng dạy'),('GV015','Trần Thị O','Nữ','Cử nhân','0944567890','Đang giảng dạy');
 /*!40000 ALTER TABLE `lecturers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,7 +177,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES ('2205CT0035','Huỳnh','Văn Khuân','2004-06-25','Nam','Năm 3','Công nghệ thông tin','MH002','Đang học','','2025-02-20 19:07:38','2025-02-20 19:07:38'),('2205CT0055','Mai','Trọng Quang','2004-03-25','Nam','Năm 1','Công nghệ thông tin','MH004','Đang học','','2025-02-16 21:43:15','2025-02-20 20:02:04'),('2205CT0091','Nguyễn','Ngọc Quỳnh','2004-09-25','Nữ','Năm 3','Kinh tế','MH002','Đang học','','2025-02-20 19:40:38','2025-02-20 19:51:12');
+INSERT INTO `students` VALUES ('2205CT0013','Nguyen','Van A','2004-02-24','Nam','Năm 3','Công nghệ thông tin','MH014','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0014','Tran','Thi B','2003-05-15','Nữ','Năm 4','Kinh tế','MH003','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0015','Le','Van C','2005-11-30','Nam','Năm 2','Công nghệ thông tin','MH002','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0016','Pham','Thi D','2002-07-10','Nữ','Năm 4','Y khoa','MH002','Tốt nghiệp',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0017','Hoang','Van E','2004-03-22','Nam','Năm 3','Kỹ thuật','MH002','Bảo lưu',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0018','Nguyen','Thi F','2005-09-05','Nữ','Năm 2','Công nghệ thông tin','MH001','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0019','Tran','Van G','2003-12-12','Nam','Năm 3','Kinh tế','MH002','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0020','Le','Thi H','2004-04-18','Nữ','Năm 3','Y khoa','MH002','Nghỉ học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14'),('2205CT0021','Pham','Van I','2005-08-25','Nam','Năm 2','Kỹ thuật','MH002','Đang học',NULL,'2025-02-24 19:20:14','2025-02-24 19:20:14');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -210,4 +209,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-02-21  3:36:06
+-- Dump completed on 2025-02-25  2:22:38

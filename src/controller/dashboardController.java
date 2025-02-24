@@ -67,16 +67,20 @@ public class dashboardController {
     private PreparedStatement preparedStatement;
     private ResultSet resultSet;
 
+    // Dashboard controller
     private static dashboardController instance;
 
+    // Gán this của Dashboard controller
     public dashboardController() {
         instance = this;
     }
 
+    // get Dashboard controller
     public static dashboardController getInstance() {
         return instance;
     }
 
+    // Main
     @FXML
     private Button closeBtn, dashboardBtn, minimizeBtn, logoutBtn;
 
@@ -103,6 +107,7 @@ public class dashboardController {
     @FXML
     private BarChart<String, Number> totalStudentsChart;
 
+    // Làm mới dashboard cho thống kê
     @FXML
     public void refreshDashboard() {
         updateStudentStatistics();
@@ -390,6 +395,7 @@ public class dashboardController {
         // ========== QUẢN LÝ MÔN HỌC ==========
 
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
+
         tableLecturer.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) { // Kiểm tra nếu nhấp đúp chuột
                 loadSelectedLecturerData();
@@ -1200,7 +1206,6 @@ public class dashboardController {
     private void clearFormSubject() {
         txtSubjectID.setDisable(false); // Mở khóa ô nhập mã môn học
         btnAddSubject.setDisable(false); // Mở khóa nút thêm
-
         txtSubjectID.clear();
         txtSubjectName.clear();
         txtCredits.clear();
@@ -1367,7 +1372,8 @@ public class dashboardController {
                 .replaceAll("([yY])", "$1")
                 // Thêm các quy tắc khác nếu cần (ví dụ: "nguyen" -> "nguyễn")
                 .replaceAll("nguyen", "nguyễn")
-                .replaceAll("tran", "trần");
+                .replaceAll("tran", "trần")
+                .replaceAll("huynh", "huỳnh");
     }
 
     // Kiểm tra input hợp lệ đối với môn học
@@ -1434,6 +1440,7 @@ public class dashboardController {
         return false; // Mã môn học chưa tồn tại
     }
 
+    // Sự kiên thêm môn học
     private void handleAddCourse() {
         if (!validateCourseInput())
             return;
@@ -2002,6 +2009,7 @@ public class dashboardController {
 
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
+    // Danh sách lecturerListData
     private ObservableList<LecturerData> lecturerListData;
 
     // Lấy danh sách giảng viên từ database
@@ -2044,7 +2052,6 @@ public class dashboardController {
         tableLecturer.setItems(lecturerListData);
     }
 
-    // Cập nhật giảng viên vào comboBox trong quản lý môn học
     // Cập nhật giảng viên vào comboBox trong quản lý môn học
     private void updateLecturersInCourse() {
         ObservableList<String> lecturerList = FXCollections.observableArrayList();
@@ -2123,7 +2130,6 @@ public class dashboardController {
         return true;
     }
 
-    // Kiểm tra mã giảng viên đã tồn tại hay chưa?
     // Kiểm tra xem lecturer_id có tồn tại trong bảng lecturers không
     private boolean isLecturerIDExists(String lecturerID) {
         String sql = "SELECT COUNT(*) FROM lecturers WHERE lecturer_id = ?";
@@ -2141,7 +2147,6 @@ public class dashboardController {
         return false;
     }
 
-    // Kiểm tra số điện thoại đã tồn tại chưa
     // Kiểm tra số điện thoại đã tồn tại trong database (trừ giảng viên hiện tại)
     private boolean isPhoneNumberExists(String phone, String currentLecturerID) {
         String sql = "SELECT COUNT(*) FROM lecturers WHERE phone = ? AND lecturer_id != ?";
@@ -2408,9 +2413,9 @@ public class dashboardController {
         txtLecturerID.clear();
         txtLecturerName.clear();
         txtLecturerPhone.clear();
-        cbLecturerGender.setValue(null);
-        cbLecturerDegree.setValue(null);
-        cbLecturerStatus.setValue(null);
+        cbLecturerGender.setValue("Chọn");
+        cbLecturerDegree.setValue("Chọn");
+        cbLecturerStatus.setValue("Chọn");
     }
 
     // Chọn file danh sách giảng viên

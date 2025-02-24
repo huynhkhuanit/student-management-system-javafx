@@ -5,9 +5,9 @@
 2. Nhấp đôi vào sinh viên -> mở form -> cần fix lại các textField bị disable -> cần nhìn rõ hơn.
 KỸ THUẬT VIÊN -> sẽ tạo các tài khoản cho admin -> ADMIN có thể chọn vào quên mật khẩu -> cần qua bước xác minh gì đó để cấp lại mật khẩu.
 Cần tối ưu CSDL -> mật khẩu của admin phải được băm và mã hoá SH256
-Sử dụng JSON, TXT, file excel để thêm hàng loạt các SINH VIÊN, MÔN HỌC, GIẢNG VIÊN VÀ ĐIỂM. (Xem xét cách thực hiện : thêm nút thêm hàng loạt, hoặc cho lựa chọn khi ấn vào button thêm).
-Chia ra thành học hàm (PSG, GS. TS) và học vị (Cử nhân -> tiến sĩ)
-Màu sắc giao diện.
+9. Sử dụng JSON, TXT, file excel để thêm hàng loạt các SINH VIÊN, MÔN HỌC, GIẢNG VIÊN VÀ ĐIỂM. (Xem xét cách thực hiện : thêm nút thêm hàng loạt, hoặc cho lựa chọn khi ấn vào button thêm).
+8. Chia ra thành học hàm (PSG, GS. TS) và học vị (Cử nhân -> tiến sĩ)
+10. Màu sắc giao diện.
 5. BỎ tính năng làm mới trong QUẢN LÝ ĐIỂM.
 3. Cập nhật các tính năng (xoá, xoá toàn bộ, xoá thông tin, cập nhật) trong QL ĐIỂM.
 4. CÁC TÍNH NĂNG LIÊN QUAN TỚI THỐNG KÊ TRONG TRANG CHỦ.
@@ -25,3 +25,6 @@ Màu sắc giao diện.
 5. BỎ tính năng làm mới trong QUẢN LÝ ĐIỂM -> XONG
 6. Xử lý đăng nhập hiển thị ADMIN USER nào đăng -> Xong
 7. Xây dựng tính năng tìm kiếm trong QUẢN LÝ ĐIỂM -> XONG
+8. Chia ra thành học hàm (PSG, GS. TS) và học vị (Cử nhân -> tiến sĩ) -> cần xem xét -> độ khó
+9. Sử dụng JSON, TXT, file excel để thêm hàng loạt các SINH VIÊN, MÔN HỌC, GIẢNG VIÊN VÀ ĐIỂM. (Xem xét cách thực hiện : thêm nút thêm hàng loạt, hoặc cho lựa chọn khi ấn vào button thêm) -> xong.
+10. Màu sắc giao diện -> xong.
