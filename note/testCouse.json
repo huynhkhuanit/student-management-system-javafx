@@ -1,0 +1,122 @@
+[
+    {
+        "subjectID": "MH001",
+        "subjectName": "Lập trình Java",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH002",
+        "subjectName": "Cơ sở dữ liệu",
+        "credits": 4,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH003",
+        "subjectName": "Thiết kế hệ thống",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH004",
+        "subjectName": "Mạng máy tính",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH005",
+        "subjectName": "Kiến trúc phần mềm",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH006",
+        "subjectName": "Lập trình Web",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH007",
+        "subjectName": "Xử lý ảnh và video",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH008",
+        "subjectName": "Phát triển ứng dụng di động",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH009",
+        "subjectName": "Hệ điều hành",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH010",
+        "subjectName": "Quản lý dự án phần mềm",
+        "credits": 4,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH011",
+        "subjectName": "Công nghệ Blockchain",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH012",
+        "subjectName": "Khoa học dữ liệu",
+        "credits": 4,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH013",
+        "subjectName": "Học máy",
+        "credits": 3,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 1",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH014",
+        "subjectName": "Trí tuệ nhân tạo",
+        "credits": 4,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    },
+    {
+        "subjectID": "MH015",
+        "subjectName": "Thực tập tốt nghiệp",
+        "credits": 6,
+        "lecturer": "TS. Trần Thị B",
+        "semester": "Học kỳ 2",
+        "status": "Đang mở"
+    }
+]

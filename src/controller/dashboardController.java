@@ -160,7 +160,7 @@ public class dashboardController {
     // ========== MÔN HỌC PROPERTY ==========
 
     @FXML
-    private Button courseManageBtn;
+    private Button courseManageBtn, btnUploadSubjects;
     @FXML
     private AnchorPane courseManageForm;
     @FXML
@@ -181,7 +181,7 @@ public class dashboardController {
 
     // =========== QUẢN LÝ GIẢNG VIÊN ===========
     @FXML
-    private Button lecturerManageBtn;
+    private Button lecturerManageBtn, btnUploadLecturer;
     @FXML
     private AnchorPane lecturerManageForm;
     @FXML
@@ -383,6 +383,10 @@ public class dashboardController {
         btnUpdateSubject.setOnAction(e -> handleUpdateCourse()); // Cập nhật môn học
         btnClearFormSubject.setOnAction(e -> clearFormSubject()); // Xoá form nhập liệu
 
+        // Đặt tooltip cho btnUploadSubjects
+        btnUploadSubjects.setTooltip(CustomTooltip.createTooltip(("Uploads danh sách môn học từ files!")));
+        btnUploadSubjects.setOnAction(event -> openSubjectFileChooser());
+
         // ========== QUẢN LÝ MÔN HỌC ==========
 
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
@@ -404,6 +408,12 @@ public class dashboardController {
         btnDeleteLecturer.setOnAction(e -> handleDeleteLecturer());
         btnClearFormLecturer.setOnAction(e -> handleClearFormLecturer());
         btnClearAllLecturer.setOnAction(e -> handleClearAllLecturer());
+
+        // Gán sự kiện cho nút Upload giảng viên
+        btnUploadLecturer.setOnAction(e -> openLecturerFileChooser());
+
+        // Tạo tooltip cho nút Upload giảng viên
+        btnUploadLecturer.setTooltip(CustomTooltip.createTooltip("- Đối với file excel hãy tuân thủ theo cấu trúc của quản lý đặt ra!\n- Cấu trúc file excel:\n \t| LecturerID | LecturerName | Gender | Degree | Phone | Status |"));
 
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
@@ -891,19 +901,16 @@ public class dashboardController {
 
             int duplicateCount = 0; // Đếm số sinh viên trùng MSSV
             int successCount = 0; // Đếm số sinh viên thêm thành công
+            int errorCount = 0; // Đếm số lỗi khác
 
             for (StudentData student : students) {
-                try {
-                    insertStudentIntoDatabase(student);
+                if (insertStudentIntoDatabase(student)) {
                     successCount++;
-                } catch (SQLException e) {
-                    if (e.getMessage().contains("MSSV")) {
-                        // Nếu lỗi là do trùng MSSV, tăng đếm và bỏ qua
+                } else {
+                    if (student.getStudentID() != null && isStudentIDExists(student.getStudentID())) {
                         duplicateCount++;
-                        AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + student.getStudentID());
                     } else {
-                        // Nếu lỗi khác (như course_id không tồn tại), ném ra ngoài
-                        throw e;
+                        errorCount++;
                     }
                 }
             }
@@ -913,10 +920,12 @@ public class dashboardController {
             if (duplicateCount > 0) {
                 message += "\nCó " + duplicateCount + " sinh viên trùng MSSV đã bị bỏ qua.";
             }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " lỗi khác xảy ra.";
+            }
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList(); // Cập nhật lại TableView
         } catch (Exception e) {
-            e.printStackTrace();
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ JSON: " + e.getMessage());
         }
     }
@@ -981,36 +990,34 @@ public class dashboardController {
                     }
 
                     java.sql.Date birthDate = new java.sql.Date(dateFormat.parse(birthDateStr).getTime());
-                    String courseID = getCourseIDByName(subject);
-                    if (courseID == null) {
-                        throw new SQLException("Không tìm thấy course_id cho môn học: " + subject);
-                    }
+                    StudentData student = new StudentData(studentID, firstName, lastName, birthDate, gender,
+                            schoolYear, major, subject, status, null);
 
-                    if (!isStudentIDExists(studentID)) {
-                        preparedStatement.setString(1, studentID);
-                        preparedStatement.setString(2, firstName);
-                        preparedStatement.setString(3, lastName);
-                        preparedStatement.setDate(4, birthDate);
-                        preparedStatement.setString(5, gender);
-                        preparedStatement.setString(6, schoolYear);
-                        preparedStatement.setString(7, major);
-                        preparedStatement.setString(8, courseID);
-                        preparedStatement.setString(9, status);
-                        preparedStatement.addBatch();
+                    if (insertStudentIntoDatabase(student)) {
                         successCount++;
                     } else {
-                        duplicateCount++;
-                        AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                        if (isStudentIDExists(studentID)) {
+                            duplicateCount++;
+                            AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                        } else {
+                            errorCount++;
+                        }
                     }
                 } catch (Exception e) {
-                    errorCount++;
-                    AlertComponent.showError("Lỗi", null,
-                            "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    }
                 }
             }
 
             if (successCount > 0) {
-                preparedStatement.executeBatch();
+                preparedStatement.executeBatch(); // Chỉ gọi nếu có bản ghi thành công
             }
 
             String message = "Đã nhập " + successCount + " sinh viên thành công từ Excel!";
@@ -1022,9 +1029,7 @@ public class dashboardController {
             }
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList();
-
         } catch (Exception e) {
-            e.printStackTrace();
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ Excel: " + e.getMessage());
         }
     }
@@ -1038,7 +1043,7 @@ public class dashboardController {
             int duplicateCount = 0;
             int errorCount = 0;
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy"); // Định dạng ngày giống JSON/Excel
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
             while ((line = br.readLine()) != null) {
                 if (isFirstLine) {
@@ -1079,20 +1084,24 @@ public class dashboardController {
                     StudentData student = new StudentData(studentID, firstName, lastName, birthDate,
                             gender, schoolYear, major, subject, status, null);
 
-                    try {
-                        insertStudentIntoDatabase(student);
+                    if (insertStudentIntoDatabase(student)) {
                         successCount++;
-                    } catch (SQLException e) {
-                        if (e.getMessage().contains("MSSV")) {
+                    } else {
+                        if (isStudentIDExists(studentID)) {
                             duplicateCount++;
                             AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
                         } else {
-                            throw e;
+                            errorCount++;
                         }
                     }
                 } catch (Exception e) {
-                    errorCount++;
-                    AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    }
                 }
             }
 
@@ -1106,27 +1115,29 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList();
         } catch (Exception e) {
-            e.printStackTrace();
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ CSV: " + e.getMessage());
         }
     }
 
     // Kiểm tra xem MSSV đã tồn tại chưa
-    private boolean isStudentIDExists(String studentID) throws SQLException {
+    private boolean isStudentIDExists(String studentID) {
         String sql = "SELECT COUNT(*) FROM students WHERE student_id = ?";
         try (Connection connect = database.connectDB();
                 PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
             preparedStatement.setString(1, studentID);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getInt(1) > 0; // Trả về true nếu MSSV đã tồn tại
+                return resultSet.getInt(1) > 0;
             }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể kiểm tra MSSV: " + e.getMessage());
+            return false;
         }
         return false;
     }
 
     // Xử lý thêm sinh viên vào database
-    private void insertStudentIntoDatabase(StudentData student) throws SQLException {
+    private boolean insertStudentIntoDatabase(StudentData student) {
         String sql = "INSERT INTO students (student_id, first_name, last_name, birth_date, gender, " +
                 "school_year, major, subject, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -1135,12 +1146,13 @@ public class dashboardController {
 
             String courseID = getCourseIDByName(student.getSubject());
             if (courseID == null) {
-                throw new SQLException("Không tìm thấy course_id cho môn học: " + student.getSubject());
+                AlertComponent.showError("Lỗi", null, "Không tìm thấy course_id cho môn học: " + student.getSubject());
+                return false;
             }
 
-            // Kiểm tra xem MSSV đã tồn tại chưa
             if (isStudentIDExists(student.getStudentID())) {
-                throw new SQLException("MSSV " + student.getStudentID() + " đã tồn tại trong database.");
+                AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + student.getStudentID());
+                return false;
             }
 
             preparedStatement.setString(1, student.getStudentID());
@@ -1155,8 +1167,13 @@ public class dashboardController {
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new SQLException("Không thể thêm sinh viên vào database.");
+                AlertComponent.showError("Lỗi", null, "Không thể thêm sinh viên vào database.");
+                return false;
             }
+            return true;
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi database khi thêm sinh viên: " + e.getMessage());
+            return false;
         }
     }
 
@@ -1294,6 +1311,63 @@ public class dashboardController {
             }
         }
         return null;
+    }
+
+    // Hàm overloading mới: Chuẩn hóa tên giảng viên trước khi tìm kiếm
+    private String getLecturerIDByName(String lecturerName, boolean normalize) {
+        if (lecturerName == null || lecturerName.trim().isEmpty()) {
+            return null;
+        }
+
+        // Chuẩn hóa tên giảng viên: Loại bỏ tiền tố, khoảng trắng thừa, và chuẩn hóa
+        // dấu tiếng Việt
+        if (normalize) {
+            String normalizedName = lecturerName.trim()
+                    .replaceAll("^(CN\\.|ThS\\.|TS\\.|PSG\\.|GS\\.\\s*)", "") // Loại bỏ các tiền tố
+                    .replaceAll("\\s+", " ") // Chuẩn hóa khoảng trắng thành một khoảng trắng duy nhất
+                    .trim(); // Loại bỏ khoảng trắng đầu và cuối
+
+            // Chuẩn hóa dấu tiếng Việt (nếu cần)
+            normalizedName = normalizeVietnameseChars(normalizedName);
+
+            // Tìm lecturer_id với tên đã chuẩn hóa
+            String sql = "SELECT lecturer_id FROM lecturers WHERE lecturer_name = ?";
+            try (Connection connect = database.connectDB();
+                    PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+                preparedStatement.setString(1, normalizedName);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    return resultSet.getString("lecturer_id");
+                }
+            } catch (SQLException e) {
+                AlertComponent.showError("Lỗi", null, "Không thể truy vấn thông tin giảng viên: " + e.getMessage());
+                return null;
+            }
+        } else {
+            // Gọi hàm cũ nếu không cần chuẩn hóa
+            return getLecturerIDByName(lecturerName);
+        }
+        return null; // Không tìm thấy lecturer_name sau khi chuẩn hóa
+    }
+
+    // Hàm phụ trợ: Chuẩn hóa dấu tiếng Việt
+    private String normalizeVietnameseChars(String input) {
+        if (input == null)
+            return null;
+
+        // Chuẩn hóa dấu tiếng Việt (ví dụ: "Nguyen" -> "Nguyễn")
+        return input
+                .replaceAll("([aA])", "$1") // Giữ nguyên 'a' và 'A'
+                .replaceAll("([eE])", "$1")
+                .replaceAll("([oO])", "$1")
+                .replaceAll("([uU])", "$1")
+                .replaceAll("([iI])", "$1")
+                .replaceAll("([dD])", "$1")
+                .replaceAll("([yY])", "$1")
+                // Thêm các quy tắc khác nếu cần (ví dụ: "nguyen" -> "nguyễn")
+                .replaceAll("nguyen", "nguyễn")
+                .replaceAll("tran", "trần");
     }
 
     // Kiểm tra input hợp lệ đối với môn học
@@ -1606,6 +1680,324 @@ public class dashboardController {
         }
     }
 
+    // Mở file Subjects
+    private void openSubjectFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn file môn học");
+
+        // Thêm các bộ lọc cho JSON, Excel, CSV, và All Files
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"), // Hiển thị tất cả file
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"),
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Đặt "All Files" làm bộ lọc mặc định để hiển thị tất cả file
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            processSubjectFile(file);
+        }
+    }
+
+    // Xử lý file theo subject
+    private void processSubjectFile(File file) {
+        String fileName = file.getName().toLowerCase();
+
+        if (fileName.endsWith(".json")) {
+            importFromJsonSubject(file);
+        } else if (fileName.endsWith(".xlsx")) {
+            importFromExcelSubject(file);
+        } else if (fileName.endsWith(".csv")) {
+            importFromCsvSubject(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
+        }
+    }
+
+    // Import theo JSON
+    private void importFromJsonSubject(File file) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<CourseData> courses = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CourseData.class));
+
+            int duplicateCount = 0; // Đếm số môn học trùng mã môn học
+            int successCount = 0; // Đếm số môn học thêm thành công
+            int errorCount = 0; // Đếm số lỗi khác
+
+            for (CourseData course : courses) {
+                try {
+                    insertCourseIntoDatabase(course);
+                    successCount++;
+                } catch (SQLException e) {
+                    if (e.getMessage().contains("Mã môn học")) {
+                        // Nếu lỗi là do trùng mã môn học, tăng đếm và bỏ qua
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Môn học trùng mã: " + course.getSubjectID());
+                    } else if (e.getMessage().contains("lecturer_id")) {
+                        // Nếu lỗi là do lecturer_id không tồn tại
+                        duplicateCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Không tìm thấy mã giảng viên cho môn học: " + course.getSubjectID());
+                    } else {
+                        // Nếu lỗi khác, tăng đếm lỗi và thông báo
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Lỗi khi thêm môn học " + course.getSubjectID() + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            // Tạo thông báo dựa trên kết quả
+            String message = "Đã thêm " + successCount + " môn học thành công từ JSON!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " môn học bị bỏ qua (trùng mã hoặc lỗi giảng viên).";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " lỗi khác xảy ra.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showCoursesList(); // Cập nhật danh sách môn học trên TableView
+            updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ JSON: " + e.getMessage());
+        }
+    }
+
+    // Import theo excel
+    private void importFromExcelSubject(File file) {
+        try (FileInputStream fis = new FileInputStream(file);
+                Workbook workbook = new XSSFWorkbook(fis);
+                Connection connect = database.connectDB()) {
+
+            PreparedStatement preparedStatement = connect.prepareStatement(
+                    "INSERT INTO courses (course_id, course_name, credits, lecturer, semester, status) VALUES (?, ?, ?, ?, ?, ?)");
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue; // Bỏ qua dòng tiêu đề
+
+                try {
+                    String courseID = getCellStringValue(row.getCell(0));
+                    String courseName = getCellStringValue(row.getCell(1));
+                    String creditsStr = getCellStringValue(row.getCell(2));
+                    String lecturerName = getCellStringValue(row.getCell(3)); // Giả sử dùng tên giảng viên trong Excel
+                    String semester = getCellStringValue(row.getCell(4));
+                    String status = getCellStringValue(row.getCell(5));
+
+                    if (courseID == null || courseName == null || creditsStr == null || lecturerName == null ||
+                            semester == null || status == null) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng " + (row.getRowNum() + 1));
+                    }
+
+                    // Chuyển credits từ chuỗi sang int
+                    int credits;
+                    try {
+                        credits = Integer.parseInt(creditsStr);
+                        if (credits <= 0) {
+                            throw new NumberFormatException("Số tín chỉ phải là số nguyên dương");
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Số tín chỉ không hợp lệ tại dòng " + (row.getRowNum() + 1));
+                    }
+
+                    // Lấy lecturer_id từ lecturer_name
+                    String lecturerID = getLecturerIDByName(lecturerName);
+                    if (lecturerID == null) {
+                        throw new SQLException("Không tìm thấy mã giảng viên cho tên: " + lecturerName + " tại dòng "
+                                + (row.getRowNum() + 1));
+                    }
+
+                    CourseData course = new CourseData(courseID, courseName, credits, lecturerName, semester, status);
+
+                    if (!isCourseIDExists(courseID)) {
+                        preparedStatement.setString(1, courseID);
+                        preparedStatement.setString(2, courseName);
+                        preparedStatement.setInt(3, credits);
+                        preparedStatement.setString(4, lecturerID);
+                        preparedStatement.setString(5, semester);
+                        preparedStatement.setString(6, status);
+                        preparedStatement.addBatch();
+                        successCount++;
+                    } else {
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null,
+                                "Môn học trùng mã: " + courseID + " tại dòng " + (row.getRowNum() + 1));
+                    }
+                } catch (Exception e) {
+                    if (e instanceof SQLException) {
+                        if (e.getMessage().contains("lecturer_id")) {
+                            duplicateCount++;
+                            AlertComponent.showError("Lỗi", null, "Không tìm thấy mã giảng viên tại dòng "
+                                    + (row.getRowNum() + 1) + ": " + e.getMessage());
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Lỗi SQL tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                        }
+                    } else if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            if (successCount > 0) {
+                preparedStatement.executeBatch();
+            }
+
+            String message = "Đã nhập " + successCount + " môn học thành công từ Excel!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " môn học trùng mã hoặc lỗi giảng viên bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi khác.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showCoursesList(); // Cập nhật danh sách trên TableView
+            updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ Excel: " + e.getMessage());
+        }
+    }
+
+    // Import theo CSV
+    private void importFromCsvSubject(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+
+                try {
+                    String[] data = line.split(",");
+                    if (data.length < 6) {
+                        throw new IllegalArgumentException("Dữ liệu không đủ tại dòng hiện tại");
+                    }
+
+                    String courseID = data[0].trim();
+                    String courseName = data[1].trim();
+                    String creditsStr = data[2].trim();
+                    String lecturerName = data[3].trim();
+                    String semester = data[4].trim();
+                    String status = data[5].trim();
+
+                    if (courseID.isEmpty() || courseName.isEmpty() || creditsStr.isEmpty() || lecturerName.isEmpty() ||
+                            semester.isEmpty() || status.isEmpty()) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng hiện tại");
+                    }
+
+                    // Chuyển credits từ chuỗi sang int
+                    int credits;
+                    try {
+                        credits = Integer.parseInt(creditsStr);
+                        if (credits <= 0) {
+                            throw new NumberFormatException("Số tín chỉ phải là số nguyên dương");
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Số tín chỉ không hợp lệ tại dòng hiện tại");
+                    }
+
+                    // Lấy lecturer_id từ lecturer_name
+                    String lecturerID = getLecturerIDByName(lecturerName);
+                    if (lecturerID == null) {
+                        throw new SQLException(
+                                "Không tìm thấy mã giảng viên cho tên: " + lecturerName + " tại dòng hiện tại");
+                    }
+
+                    CourseData course = new CourseData(courseID, courseName, credits, lecturerName, semester, status);
+
+                    if (!isCourseIDExists(courseID)) {
+                        insertCourseIntoDatabase(course);
+                        successCount++;
+                    } else {
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Môn học trùng mã: " + courseID + " tại dòng hiện tại");
+                    }
+                } catch (Exception e) {
+                    if (e instanceof SQLException) {
+                        if (e.getMessage().contains("lecturer_id")) {
+                            duplicateCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Không tìm thấy mã giảng viên tại dòng hiện tại: " + e.getMessage());
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null, "Lỗi SQL tại dòng hiện tại: " + e.getMessage());
+                        }
+                    } else if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    }
+                }
+            }
+
+            String message = "Đã nhập " + successCount + " môn học thành công từ CSV!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " môn học trùng mã hoặc lỗi giảng viên bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi khác.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showCoursesList(); // Cập nhật danh sách trên TableView
+            updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ CSV: " + e.getMessage());
+        }
+    }
+
+    // Thêm danh sách môn học từ file -> database.
+    private void insertCourseIntoDatabase(CourseData course) throws SQLException {
+        String sql = "INSERT INTO courses (course_id, course_name, credits, lecturer, semester, status) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            String lecturerID = getLecturerIDByName(course.getLecturer(), true); // Sử dụng phiên bản chuẩn hóa
+            if (lecturerID == null) {
+                throw new SQLException("Không tìm thấy mã giảng viên cho tên: " + course.getLecturer());
+            }
+
+            if (isCourseIDExists(course.getSubjectID())) {
+                throw new SQLException("Mã môn học " + course.getSubjectID() + " đã tồn tại trong database.");
+            }
+
+            preparedStatement.setString(1, course.getSubjectID());
+            preparedStatement.setString(2, course.getSubjectName());
+            preparedStatement.setInt(3, course.getCredits());
+            preparedStatement.setString(4, lecturerID);
+            preparedStatement.setString(5, course.getSemester());
+            preparedStatement.setString(6, course.getStatus());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Không thể thêm môn học vào database.");
+            }
+        }
+    }
+
     // ========== QUẢN LÝ MÔN HỌC ==========
 
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
@@ -1735,55 +2127,35 @@ public class dashboardController {
     // Kiểm tra xem lecturer_id có tồn tại trong bảng lecturers không
     private boolean isLecturerIDExists(String lecturerID) {
         String sql = "SELECT COUNT(*) FROM lecturers WHERE lecturer_id = ?";
-        connect = database.connectDB();
-
-        try {
-            preparedStatement = connect.prepareStatement(sql);
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
             preparedStatement.setString(1, lecturerID);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next() && resultSet.getInt(1) > 0) {
-                return true; // Giảng viên tồn tại
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (preparedStatement != null)
-                    preparedStatement.close();
-                if (connect != null)
-                    connect.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể kiểm tra mã giảng viên: " + e.getMessage());
+            return false;
         }
-        return false; // Giảng viên không tồn tại
+        return false;
     }
 
     // Kiểm tra số điện thoại đã tồn tại chưa
     // Kiểm tra số điện thoại đã tồn tại trong database (trừ giảng viên hiện tại)
     private boolean isPhoneNumberExists(String phone, String currentLecturerID) {
         String sql = "SELECT COUNT(*) FROM lecturers WHERE phone = ? AND lecturer_id != ?";
-        connect = database.connectDB();
-
-        try {
-            preparedStatement = connect.prepareStatement(sql);
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
             preparedStatement.setString(1, phone);
             preparedStatement.setString(2, currentLecturerID);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next() && resultSet.getInt(1) > 0) {
-                return true;
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (preparedStatement != null)
-                    preparedStatement.close();
-                if (connect != null)
-                    connect.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể kiểm tra số điện thoại: " + e.getMessage());
+            return false;
         }
         return false;
     }
@@ -2041,6 +2413,326 @@ public class dashboardController {
         cbLecturerStatus.setValue(null);
     }
 
+    // Chọn file danh sách giảng viên
+    private void openLecturerFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn file giảng viên");
+
+        // Thêm các bộ lọc cho JSON, Excel, CSV, và All Files
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"), // Hiển thị tất cả file
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"),
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Đặt "All Files" làm bộ lọc mặc định để hiển thị tất cả file
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            processLecturerFile(file);
+        }
+    }
+
+    // Danh sách các file hợp lệ
+    private void processLecturerFile(File file) {
+        String fileName = file.getName().toLowerCase();
+
+        if (fileName.endsWith(".json")) {
+            importFromJsonLecturer(file);
+        } else if (fileName.endsWith(".xlsx")) {
+            importFromExcelLecturer(file);
+        } else if (fileName.endsWith(".csv")) {
+            importFromCsvLecturer(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
+        }
+    }
+
+    // Import Json
+    private void importFromJsonLecturer(File file) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<LecturerData> lecturers = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, LecturerData.class));
+
+            int duplicateIDCount = 0; // Đếm số lecturer_id trùng
+            int duplicatePhoneCount = 0; // Đếm số phone trùng
+            int successCount = 0; // Đếm số giảng viên thêm thành công
+            int errorCount = 0; // Đếm số lỗi khác
+
+            for (LecturerData lecturer : lecturers) {
+                try {
+                    if (insertLecturerIntoDatabase(lecturer)) {
+                        successCount++;
+                    }
+                } catch (Exception e) {
+                    if (e.getMessage().contains("lecturer_id")) {
+                        duplicateIDCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Giảng viên trùng mã: " + lecturer.getLecturerID());
+                    } else if (e.getMessage().contains("phone")) {
+                        duplicatePhoneCount++;
+                        AlertComponent.showWarning("Lỗi", null,
+                                "Số điện thoại đã tồn tại cho giảng viên: " + lecturer.getLecturerID());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Lỗi khi thêm giảng viên " + lecturer.getLecturerID() + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            String message = "Đã thêm " + successCount + " giảng viên thành công từ JSON!";
+            if (duplicateIDCount > 0) {
+                message += "\nCó " + duplicateIDCount + " giảng viên trùng mã bị bỏ qua.";
+            }
+            if (duplicatePhoneCount > 0) {
+                message += "\nCó " + duplicatePhoneCount + " số điện thoại trùng bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " lỗi khác xảy ra.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showLecturersList(); // Cập nhật danh sách giảng viên trên TableView
+            updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ JSON: " + e.getMessage());
+        }
+    }
+
+    // Import Excel
+    private void importFromExcelLecturer(File file) {
+        try (FileInputStream fis = new FileInputStream(file);
+                Workbook workbook = new XSSFWorkbook(fis);
+                Connection connect = database.connectDB()) {
+
+            PreparedStatement preparedStatement = connect.prepareStatement(
+                    "INSERT INTO lecturers (lecturer_id, lecturer_name, gender, degree, phone, status) VALUES (?, ?, ?, ?, ?, ?)");
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int successCount = 0;
+            int duplicateIDCount = 0;
+            int duplicatePhoneCount = 0;
+            int errorCount = 0;
+
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue; // Bỏ qua dòng tiêu đề
+
+                try {
+                    String lecturerID = getCellStringValue(row.getCell(0));
+                    String lecturerName = getCellStringValue(row.getCell(1));
+                    String gender = getCellStringValue(row.getCell(2));
+                    String degree = getCellStringValue(row.getCell(3));
+                    String phone = getCellStringValue(row.getCell(4));
+                    String status = getCellStringValue(row.getCell(5));
+
+                    if (lecturerID == null || lecturerName == null || gender == null || degree == null ||
+                            phone == null || status == null) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng " + (row.getRowNum() + 1));
+                    }
+
+                    // Kiểm tra định dạng lecturer_id (bắt đầu bằng "GV" và theo sau là số)
+                    if (!lecturerID.matches("^GV\\d+$")) {
+                        throw new IllegalArgumentException("Mã giảng viên không hợp lệ tại dòng "
+                                + (row.getRowNum() + 1) + ": Phải bắt đầu bằng 'GV' và theo sau là số");
+                    }
+
+                    // Kiểm tra định dạng phone (10-11 chữ số)
+                    if (!phone.matches("^\\d{10,11}$")) {
+                        throw new IllegalArgumentException("Số điện thoại không hợp lệ tại dòng "
+                                + (row.getRowNum() + 1) + ": Phải có 10-11 chữ số");
+                    }
+
+                    LecturerData lecturer = new LecturerData(lecturerID, lecturerName, gender, degree, phone, status);
+
+                    if (!isLecturerIDExists(lecturerID) && !isPhoneNumberExists(phone, lecturerID)) {
+                        preparedStatement.setString(1, lecturerID);
+                        preparedStatement.setString(2, lecturerName);
+                        preparedStatement.setString(3, gender);
+                        preparedStatement.setString(4, degree);
+                        preparedStatement.setString(5, phone);
+                        preparedStatement.setString(6, status);
+                        preparedStatement.addBatch();
+                        successCount++;
+                    } else {
+                        if (isLecturerIDExists(lecturerID)) {
+                            duplicateIDCount++;
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Giảng viên trùng mã: " + lecturerID + " tại dòng " + (row.getRowNum() + 1));
+                        }
+                        if (isPhoneNumberExists(phone, lecturerID)) {
+                            duplicatePhoneCount++;
+                            AlertComponent.showWarning("Lỗi", null, "Số điện thoại đã tồn tại cho giảng viên: "
+                                    + lecturerID + " tại dòng " + (row.getRowNum() + 1));
+                        }
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null,
+                            "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                }
+            }
+
+            if (successCount > 0) {
+                preparedStatement.executeBatch();
+            }
+
+            String message = "Đã nhập " + successCount + " giảng viên thành công từ Excel!";
+            if (duplicateIDCount > 0) {
+                message += "\nCó " + duplicateIDCount + " mã giảng viên trùng bị bỏ qua.";
+            }
+            if (duplicatePhoneCount > 0) {
+                message += "\nCó " + duplicatePhoneCount + " số điện thoại trùng bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi không thể nhập.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showLecturersList(); // Cập nhật danh sách trên TableView
+            updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ Excel: " + e.getMessage());
+        }
+    }
+
+    // Import CSV
+    private void importFromCsvLecturer(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            int successCount = 0;
+            int duplicateIDCount = 0;
+            int duplicatePhoneCount = 0;
+            int errorCount = 0;
+
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+
+                try {
+                    String[] data = line.split(",");
+                    if (data.length < 6) { // 6 cột: lecturer_id, lecturer_name, gender, degree, phone, status
+                        throw new IllegalArgumentException("Dữ liệu không đủ tại dòng hiện tại");
+                    }
+
+                    String lecturerID = data[0].trim();
+                    String lecturerName = data[1].trim();
+                    String gender = data[2].trim();
+                    String degree = data[3].trim();
+                    String phone = data[4].trim();
+                    String status = data[5].trim();
+
+                    if (lecturerID.isEmpty() || lecturerName.isEmpty() || gender.isEmpty() || degree.isEmpty() ||
+                            phone.isEmpty() || status.isEmpty()) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng hiện tại");
+                    }
+
+                    // Kiểm tra định dạng lecturer_id (bắt đầu bằng "GV" và theo sau là số)
+                    if (!lecturerID.matches("^GV\\d+$")) {
+                        throw new IllegalArgumentException(
+                                "Mã giảng viên không hợp lệ tại dòng hiện tại: Phải bắt đầu bằng 'GV' và theo sau là số");
+                    }
+
+                    // Kiểm tra định dạng phone (10-11 chữ số)
+                    if (!phone.matches("^\\d{10,11}$")) {
+                        throw new IllegalArgumentException(
+                                "Số điện thoại không hợp lệ tại dòng hiện tại: Phải có 10-11 chữ số");
+                    }
+
+                    LecturerData lecturer = new LecturerData(lecturerID, lecturerName, gender, degree, phone, status);
+
+                    if (!isLecturerIDExists(lecturerID) && !isPhoneNumberExists(phone, lecturerID)) {
+                        insertLecturerIntoDatabase(lecturer);
+                        successCount++;
+                    } else {
+                        if (isLecturerIDExists(lecturerID)) {
+                            duplicateIDCount++;
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Giảng viên trùng mã: " + lecturerID + " tại dòng hiện tại");
+                        }
+                        if (isPhoneNumberExists(phone, lecturerID)) {
+                            duplicatePhoneCount++;
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Số điện thoại đã tồn tại cho giảng viên: " + lecturerID + " tại dòng hiện tại");
+                        }
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                }
+            }
+
+            String message = "Đã nhập " + successCount + " giảng viên thành công từ CSV!";
+            if (duplicateIDCount > 0) {
+                message += "\nCó " + duplicateIDCount + " mã giảng viên trùng bị bỏ qua.";
+            }
+            if (duplicatePhoneCount > 0) {
+                message += "\nCó " + duplicatePhoneCount + " số điện thoại trùng bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi không thể nhập.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showLecturersList(); // Cập nhật danh sách trên TableView
+            updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ CSV: " + e.getMessage());
+        }
+    }
+
+    // Load danh sách từ file vào database
+    private boolean insertLecturerIntoDatabase(LecturerData lecturer) {
+        String sql = "INSERT INTO lecturers (lecturer_id, lecturer_name, gender, degree, phone, status) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            if (isLecturerIDExists(lecturer.getLecturerID())) {
+                AlertComponent.showWarning("Lỗi", null, "Giảng viên trùng mã: " + lecturer.getLecturerID());
+                return false;
+            }
+
+            if (isPhoneNumberExists(lecturer.getPhone(), lecturer.getLecturerID())) {
+                AlertComponent.showWarning("Lỗi", null,
+                        "Số điện thoại đã tồn tại cho giảng viên: " + lecturer.getLecturerID());
+                return false;
+            }
+
+            // Kiểm tra định dạng lecturer_id (bắt đầu bằng "GV" và theo sau là số)
+            if (!lecturer.getLecturerID().matches("^GV\\d+$")) {
+                AlertComponent.showError("Lỗi", null,
+                        "Mã giảng viên không hợp lệ: Phải bắt đầu bằng 'GV' và theo sau là số");
+                return false;
+            }
+
+            // Kiểm tra định dạng phone (10-11 chữ số)
+            if (!lecturer.getPhone().matches("^\\d{10,11}$")) {
+                AlertComponent.showError("Lỗi", null, "Số điện thoại không hợp lệ: Phải có 10-11 chữ số");
+                return false;
+            }
+
+            preparedStatement.setString(1, lecturer.getLecturerID());
+            preparedStatement.setString(2, lecturer.getLecturerName());
+            preparedStatement.setString(3, lecturer.getGender());
+            preparedStatement.setString(4, lecturer.getDegree());
+            preparedStatement.setString(5, lecturer.getPhone());
+            preparedStatement.setString(6, lecturer.getStatus());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected == 0) {
+                AlertComponent.showError("Lỗi", null, "Không thể thêm giảng viên vào database.");
+                return false;
+            }
+            return true;
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi database khi thêm giảng viên: " + e.getMessage());
+            return false;
+        }
+    }
+
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
     // ========== QUẢN LÝ ĐIỂM ==========
@@ -2161,13 +2853,15 @@ public class dashboardController {
                 PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
             preparedStatement.setString(1, courseName);
             ResultSet resultSet = preparedStatement.executeQuery();
+
             if (resultSet.next()) {
                 return resultSet.getString("course_id");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể truy vấn thông tin môn học: " + e.getMessage());
+            return null;
         }
-        return null;
+        return null; // Không tìm thấy course_name
     }
 
     // Hàm lấy 1 giá trị từ database (hàm dùng chung)

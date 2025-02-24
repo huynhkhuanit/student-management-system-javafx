@@ -1,0 +1,122 @@
+[
+    {
+        "lecturerID": "GV001",
+        "lecturerName": "Trần Thị B",
+        "gender": "Nữ",
+        "degree": "Tiến sĩ",
+        "phone": "0123456789",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV002",
+        "lecturerName": "Nguyễn Văn A",
+        "gender": "Nam",
+        "degree": "Tiến sĩ",
+        "phone": "0943006018",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV003",
+        "lecturerName": "Lê Thị C",
+        "gender": "Nữ",
+        "degree": "Thạc sĩ",
+        "phone": "0987654321",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV004",
+        "lecturerName": "Phạm Văn D",
+        "gender": "Nam",
+        "degree": "Tiến sĩ",
+        "phone": "0934567890",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV005",
+        "lecturerName": "Hoàng Thị E",
+        "gender": "Nữ",
+        "degree": "Cử nhân",
+        "phone": "0912345678",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV006",
+        "lecturerName": "Vũ Văn F",
+        "gender": "Nam",
+        "degree": "Phó giáo sư",
+        "phone": "0923456789",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV007",
+        "lecturerName": "Đỗ Thị G",
+        "gender": "Nữ",
+        "degree": "Giáo sư",
+        "phone": "0956789012",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV008",
+        "lecturerName": "Trần Văn H",
+        "gender": "Nam",
+        "degree": "Thạc sĩ",
+        "phone": "0967890123",
+        "status": "Nghỉ phép"
+    },
+    {
+        "lecturerID": "GV009",
+        "lecturerName": "Nguyễn Thị I",
+        "gender": "Nữ",
+        "degree": "Tiến sĩ",
+        "phone": "0978901234",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV010",
+        "lecturerName": "Lê Văn J",
+        "gender": "Nam",
+        "degree": "Cử nhân",
+        "phone": "0989012345",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV011",
+        "lecturerName": "Phạm Thị K",
+        "gender": "Nữ",
+        "degree": "Phó giáo sư",
+        "phone": "0990123456",
+        "status": "Nghỉ phép"
+    },
+    {
+        "lecturerID": "GV012",
+        "lecturerName": "Hoàng Văn L",
+        "gender": "Nam",
+        "degree": "Giáo sư",
+        "phone": "0911234567",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV013",
+        "lecturerName": "Vũ Thị M",
+        "gender": "Nữ",
+        "degree": "Thạc sĩ",
+        "phone": "0922345678",
+        "status": "Đã nghỉ hưu"
+    },
+    {
+        "lecturerID": "GV014",
+        "lecturerName": "Đỗ Văn N",
+        "gender": "Nam",
+        "degree": "Tiến sĩ",
+        "phone": "0933456789",
+        "status": "Đang giảng dạy"
+    },
+    {
+        "lecturerID": "GV015",
+        "lecturerName": "Trần Thị O",
+        "gender": "Nữ",
+        "degree": "Cử nhân",
+        "phone": "0944567890",
+        "status": "Đang giảng dạy"
+    }
+]

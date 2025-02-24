@@ -8,6 +8,9 @@ public class LecturerData {
     private String phone;
     private String status;
 
+    // Default Constructor
+    public LecturerData() {}
+
     // Constructor
     public LecturerData(String lecturerID, String lecturerName, String gender, String degree, String phone, String status) {
         this.lecturerID = lecturerID;

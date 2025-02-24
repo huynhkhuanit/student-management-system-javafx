@@ -8,6 +8,8 @@ public class CourseData {
     private String semester;
     private String status;
 
+    public CourseData() {}
+
     // Constructor
     public CourseData(String subjectID, String subjectName, int credits, String lecturer, String semester, String status) {
         this.subjectID = subjectID;
