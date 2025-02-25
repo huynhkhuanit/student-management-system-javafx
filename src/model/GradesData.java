@@ -9,10 +9,10 @@ public class GradesData {
     private float finalGrade;
     private float totalGrade;
 
-    // Default Constructor
+    // Defalut Constructor
     public GradesData() {}
 
-    // Parameterized Constructor
+    // Constructor CHUẨN XÁC theo database
     public GradesData(String studentID, String schoolYear, String courseID, String courseName, 
                       float midtermGrade, float finalGrade, float totalGrade) {
         this.studentID = studentID;
