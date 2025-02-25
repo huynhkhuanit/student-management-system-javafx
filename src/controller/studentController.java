@@ -3,8 +3,6 @@ package controller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -22,7 +20,6 @@ import java.sql.Statement;
 import database.database;
 import components.AlertComponent;
 
-import components.AlertComponent;
 
 public class studentController {
     @FXML

@@ -38,7 +38,7 @@ public class Main extends Application {
             });
 
             // Favicons app
-            primaryStage.getIcons().add(new Image(getClass().getResource("../assets/img/favicon-app.png").toExternalForm()));
+            // primaryStage.getIcons().add(new Image(getClass().getResource("../assets/img/favicon-app.png").toExternalForm()));
 
             // Ẩn title bar
             primaryStage.initStyle(StageStyle.TRANSPARENT);

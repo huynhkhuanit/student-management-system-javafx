@@ -1,5 +1,8 @@
 package util;
 
+import java.io.InputStream;
+
+import components.AlertComponent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,9 +20,8 @@ public class showStage {
             stage.setTitle(title);
             stage.setScene(scene);
 
-            stage.getIcons().add(new Image(showStage.class.getResourceAsStream("../assets/img/favicon-app.png")));
+            // stage.getIcons().add(new Image(showStage.class.getResourceAsStream("../assets/img/favicon-app.png")));
 
-            
             // Ẩn title bar mặc định của stages
             stage.initStyle(StageStyle.TRANSPARENT);
             stage.show();

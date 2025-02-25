@@ -406,7 +406,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
@@ -503,11 +503,11 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
-                                    <Button fx:id="btnAddGrades" layoutX="28.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="251.0" text="Thêm">
+                                    <Button fx:id="btnAddGrades" layoutX="28.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
@@ -573,6 +573,15 @@
                                           <Font name="Tahoma Bold" size="18.0" />
                                        </font>
                                     </Label>
+                                    <Button fx:id="btnUploadGrades" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Nhập điểm">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                       <graphic>
+                                          <FontAwesomeIcon fill="WHITE" glyphName="UPLOAD" />
+                                       </graphic>
+                                    </Button>
                                  </children>
                               </AnchorPane>
                               <AnchorPane layoutX="323.0" layoutY="9.0" prefHeight="535.0" prefWidth="565.0" styleClass="bg-line">

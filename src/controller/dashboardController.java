@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 // Import thư viện
@@ -47,12 +48,7 @@ import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.io.FileInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.nio.file.Paths;
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 // Model data
 import model.StudentData;
@@ -217,7 +213,7 @@ public class dashboardController {
 
     @FXML
     private Button btnAddGrades, btnDeleteGrades, btnClearAllGrades, btnUpdateGrades,
-            btnClearFormGrades, gradesManageBtn;
+            btnClearFormGrades, gradesManageBtn, btnUploadGrades;
 
     @FXML
     private TableView<GradesData> tableGrades;
@@ -340,6 +336,9 @@ public class dashboardController {
         // Mở form quản lý thông tin
         infoManageBtn.setOnMouseClicked(e -> switchForm(infoManageForm, infoManageBtn));
 
+        // Mở file để nhập điểm cho sinh viên
+        btnUploadGrades.setOnAction(event -> openGradesFileChooser());
+
         // ========== End - SHOW FORMS ==========
 
         // ========== QUẢN LÝ SINH VIÊN ==========
@@ -419,7 +418,8 @@ public class dashboardController {
         btnUploadLecturer.setOnAction(e -> openLecturerFileChooser());
 
         // Tạo tooltip cho nút Upload giảng viên
-        btnUploadLecturer.setTooltip(CustomTooltip.createTooltip("- Đối với file excel hãy tuân thủ theo cấu trúc của quản lý đặt ra!\n- Cấu trúc file excel:\n \t| LecturerID | LecturerName | Gender | Degree | Phone | Status |"));
+        btnUploadLecturer.setTooltip(CustomTooltip.createTooltip(
+                "- Đối với file excel hãy tuân thủ theo cấu trúc của quản lý đặt ra!\n- Cấu trúc file excel:\n \t| LecturerID | LecturerName | Gender | Degree | Phone | Status |"));
 
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
@@ -893,13 +893,21 @@ public class dashboardController {
         fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
 
         File file = fileChooser.showOpenDialog(null);
-        if (file != null) {
+        if (file != null && file.exists()) { // Kiểm tra file không null và tồn tại
             processFile(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một file hợp lệ!");
         }
     }
 
     // Thêm sinh viên từ file JSON
+    // Thêm sinh viên từ file JSON
     private void importFromJson(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             List<StudentData> students = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
@@ -910,14 +918,24 @@ public class dashboardController {
             int errorCount = 0; // Đếm số lỗi khác
 
             for (StudentData student : students) {
-                if (insertStudentIntoDatabase(student)) {
-                    successCount++;
-                } else {
-                    if (student.getStudentID() != null && isStudentIDExists(student.getStudentID())) {
-                        duplicateCount++;
+                try {
+                    if (insertStudentIntoDatabase(student)) {
+                        successCount++;
                     } else {
-                        errorCount++;
+                        if (student.getStudentID() != null && isStudentIDExists(student.getStudentID())) {
+                            duplicateCount++;
+                            AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + student.getStudentID());
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null, "Lỗi khi thêm sinh viên: " + student.getStudentID());
+                        }
                     }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null,
+                            "Lỗi khi xử lý sinh viên "
+                                    + (student.getStudentID() != null ? student.getStudentID() : "không xác định")
+                                    + ": " + e.getMessage());
                 }
             }
 
@@ -931,6 +949,8 @@ public class dashboardController {
             }
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList(); // Cập nhật lại TableView
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file JSON: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ JSON: " + e.getMessage());
         }
@@ -939,7 +959,7 @@ public class dashboardController {
     // Xử lý cell trong file Excel
     private String getCellStringValue(Cell cell) {
         if (cell == null) {
-            return null;
+            return ""; // Trả về chuỗi rỗng thay vì null
         }
         switch (cell.getCellType()) {
             case STRING:
@@ -951,14 +971,19 @@ public class dashboardController {
                     return String.valueOf((int) cell.getNumericCellValue());
                 }
             case BLANK:
-                return null;
+                return ""; // Trả về chuỗi rỗng cho ô trống
             default:
-                return null;
+                return ""; // Mặc định trả về chuỗi rỗng
         }
     }
 
     // Thêm sinh viên từ file Excel
     private void importFromExcel(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (FileInputStream fis = new FileInputStream(file);
                 Workbook workbook = new XSSFWorkbook(fis);
                 Connection connect = database.connectDB()) {
@@ -995,7 +1020,14 @@ public class dashboardController {
                         throw new IllegalArgumentException("Dữ liệu trống tại dòng " + (row.getRowNum() + 1));
                     }
 
-                    java.sql.Date birthDate = new java.sql.Date(dateFormat.parse(birthDateStr).getTime());
+                    java.sql.Date birthDate;
+                    try {
+                        birthDate = new java.sql.Date(dateFormat.parse(birthDateStr).getTime());
+                    } catch (ParseException e) {
+                        throw new IllegalArgumentException(
+                                "Định dạng ngày không hợp lệ tại dòng " + (row.getRowNum() + 1));
+                    }
+
                     StudentData student = new StudentData(studentID, firstName, lastName, birthDate, gender,
                             schoolYear, major, subject, status, null);
 
@@ -1004,21 +1036,18 @@ public class dashboardController {
                     } else {
                         if (isStudentIDExists(studentID)) {
                             duplicateCount++;
-                            AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Sinh viên trùng MSSV: " + studentID + " tại dòng " + (row.getRowNum() + 1));
                         } else {
                             errorCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Lỗi khi thêm sinh viên " + studentID + " tại dòng " + (row.getRowNum() + 1));
                         }
                     }
                 } catch (Exception e) {
-                    if (e instanceof IllegalArgumentException) {
-                        errorCount++;
-                        AlertComponent.showError("Lỗi", null,
-                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
-                    } else {
-                        errorCount++;
-                        AlertComponent.showError("Lỗi", null,
-                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
-                    }
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null,
+                            "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
                 }
             }
 
@@ -1035,13 +1064,23 @@ public class dashboardController {
             }
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList();
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file Excel: " + e.getMessage());
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi kết nối database khi nhập sinh viên: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ Excel: " + e.getMessage());
         }
     }
 
     // Xử lý file CSV
+    // Xử lý file CSV
     private void importFromCsv(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isFirstLine = true;
@@ -1095,19 +1134,17 @@ public class dashboardController {
                     } else {
                         if (isStudentIDExists(studentID)) {
                             duplicateCount++;
-                            AlertComponent.showWarning("Lỗi", null, "Sinh viên trùng MSSV: " + studentID);
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Sinh viên trùng MSSV: " + studentID + " tại dòng hiện tại");
                         } else {
                             errorCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Lỗi khi thêm sinh viên " + studentID + " tại dòng hiện tại");
                         }
                     }
                 } catch (Exception e) {
-                    if (e instanceof IllegalArgumentException) {
-                        errorCount++;
-                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
-                    } else {
-                        errorCount++;
-                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
-                    }
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
                 }
             }
 
@@ -1120,6 +1157,8 @@ public class dashboardController {
             }
             AlertComponent.showInformation("Thành công", null, message);
             addStudentsShowList();
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file CSV: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập sinh viên từ CSV: " + e.getMessage());
         }
@@ -1185,6 +1224,11 @@ public class dashboardController {
 
     // Phương thức xử lý file nhập vào (JSON, Excel, CSV)
     private void processFile(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         String fileName = file.getName().toLowerCase();
 
         if (fileName.endsWith(".json")) {
@@ -1688,6 +1732,7 @@ public class dashboardController {
     }
 
     // Mở file Subjects
+    // Mở file Subjects
     private void openSubjectFileChooser() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Chọn file môn học");
@@ -1703,13 +1748,21 @@ public class dashboardController {
         fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
 
         File file = fileChooser.showOpenDialog(null);
-        if (file != null) {
+        if (file != null && file.exists()) { // Kiểm tra file không null và tồn tại
             processSubjectFile(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một file hợp lệ!");
         }
     }
 
     // Xử lý file theo subject
+    // Xử lý file theo subject
     private void processSubjectFile(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         String fileName = file.getName().toLowerCase();
 
         if (fileName.endsWith(".json")) {
@@ -1725,6 +1778,11 @@ public class dashboardController {
 
     // Import theo JSON
     private void importFromJsonSubject(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             List<CourseData> courses = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
@@ -1747,7 +1805,8 @@ public class dashboardController {
                         // Nếu lỗi là do lecturer_id không tồn tại
                         duplicateCount++;
                         AlertComponent.showError("Lỗi", null,
-                                "Không tìm thấy mã giảng viên cho môn học: " + course.getSubjectID());
+                                "Không tìm thấy mã giảng viên cho môn học: " + course.getSubjectID()
+                                        + " - Tên giảng viên: " + course.getLecturer());
                     } else {
                         // Nếu lỗi khác, tăng đếm lỗi và thông báo
                         errorCount++;
@@ -1768,6 +1827,8 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showCoursesList(); // Cập nhật danh sách môn học trên TableView
             updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file JSON: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ JSON: " + e.getMessage());
         }
@@ -1775,12 +1836,17 @@ public class dashboardController {
 
     // Import theo excel
     private void importFromExcelSubject(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (FileInputStream fis = new FileInputStream(file);
                 Workbook workbook = new XSSFWorkbook(fis);
                 Connection connect = database.connectDB()) {
 
             PreparedStatement preparedStatement = connect.prepareStatement(
-                    "INSERT INTO courses (course_id, course_name, credits, lecturer, semester, status) VALUES (?, ?, ?, ?, ?, ?)");
+                    "INSERT INTO courses (course_id, course_name, credits, lecturer_id, semester, status) VALUES (?, ?, ?, ?, ?, ?)");
 
             Sheet sheet = workbook.getSheetAt(0);
             int successCount = 0;
@@ -1815,8 +1881,8 @@ public class dashboardController {
                         throw new IllegalArgumentException("Số tín chỉ không hợp lệ tại dòng " + (row.getRowNum() + 1));
                     }
 
-                    // Lấy lecturer_id từ lecturer_name
-                    String lecturerID = getLecturerIDByName(lecturerName);
+                    // Lấy lecturer_id từ lecturer_name với chuẩn hóa
+                    String lecturerID = getLecturerIDByName(lecturerName, true);
                     if (lecturerID == null) {
                         throw new SQLException("Không tìm thấy mã giảng viên cho tên: " + lecturerName + " tại dòng "
                                 + (row.getRowNum() + 1));
@@ -1875,6 +1941,10 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showCoursesList(); // Cập nhật danh sách trên TableView
             updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file Excel: " + e.getMessage());
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi kết nối database khi nhập môn học: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ Excel: " + e.getMessage());
         }
@@ -1882,6 +1952,11 @@ public class dashboardController {
 
     // Import theo CSV
     private void importFromCsvSubject(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isFirstLine = true;
@@ -1924,8 +1999,8 @@ public class dashboardController {
                         throw new IllegalArgumentException("Số tín chỉ không hợp lệ tại dòng hiện tại");
                     }
 
-                    // Lấy lecturer_id từ lecturer_name
-                    String lecturerID = getLecturerIDByName(lecturerName);
+                    // Lấy lecturer_id từ lecturer_name với chuẩn hóa
+                    String lecturerID = getLecturerIDByName(lecturerName, true);
                     if (lecturerID == null) {
                         throw new SQLException(
                                 "Không tìm thấy mã giảng viên cho tên: " + lecturerName + " tại dòng hiện tại");
@@ -1970,6 +2045,8 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showCoursesList(); // Cập nhật danh sách trên TableView
             updateStudentSubjectsComboBox(); // Cập nhật danh sách môn học trong ComboBox của sinh viên
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file CSV: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập môn học từ CSV: " + e.getMessage());
         }
@@ -1977,7 +2054,7 @@ public class dashboardController {
 
     // Thêm danh sách môn học từ file -> database.
     private void insertCourseIntoDatabase(CourseData course) throws SQLException {
-        String sql = "INSERT INTO courses (course_id, course_name, credits, lecturer, semester, status) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO courses (course_id, course_name, credits, lecturer_id, semester, status) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connect = database.connectDB();
                 PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
@@ -2434,13 +2511,20 @@ public class dashboardController {
         fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
 
         File file = fileChooser.showOpenDialog(null);
-        if (file != null) {
+        if (file != null && file.exists()) { // Kiểm tra file không null và tồn tại
             processLecturerFile(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một file hợp lệ!");
         }
     }
 
     // Danh sách các file hợp lệ
     private void processLecturerFile(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         String fileName = file.getName().toLowerCase();
 
         if (fileName.endsWith(".json")) {
@@ -2456,6 +2540,11 @@ public class dashboardController {
 
     // Import Json
     private void importFromJsonLecturer(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             List<LecturerData> lecturers = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
@@ -2500,6 +2589,8 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showLecturersList(); // Cập nhật danh sách giảng viên trên TableView
             updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file JSON: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ JSON: " + e.getMessage());
         }
@@ -2507,6 +2598,11 @@ public class dashboardController {
 
     // Import Excel
     private void importFromExcelLecturer(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (FileInputStream fis = new FileInputStream(file);
                 Workbook workbook = new XSSFWorkbook(fis);
                 Connection connect = database.connectDB()) {
@@ -2596,6 +2692,10 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showLecturersList(); // Cập nhật danh sách trên TableView
             updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file Excel: " + e.getMessage());
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi kết nối database khi nhập giảng viên: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ Excel: " + e.getMessage());
         }
@@ -2603,6 +2703,11 @@ public class dashboardController {
 
     // Import CSV
     private void importFromCsvLecturer(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isFirstLine = true;
@@ -2683,6 +2788,8 @@ public class dashboardController {
             AlertComponent.showInformation("Thành công", null, message);
             showLecturersList(); // Cập nhật danh sách trên TableView
             updateLecturersInCourse(); // Cập nhật danh sách giảng viên trong ComboBox của môn học
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file CSV: " + e.getMessage());
         } catch (Exception e) {
             AlertComponent.showError("Lỗi", null, "Không thể nhập giảng viên từ CSV: " + e.getMessage());
         }
@@ -2741,6 +2848,7 @@ public class dashboardController {
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
     // ========== QUẢN LÝ ĐIỂM ==========
+
     private ObservableList<GradesData> gradesListData; // Dữ liệu điểm
 
     // Lấy danh sách điểm số từ database
@@ -3201,6 +3309,472 @@ public class dashboardController {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // Mở file điểm
+    private void openGradesFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn file điểm");
+
+        // Thêm các bộ lọc cho JSON, Excel, CSV, và All Files
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"), // Hiển thị tất cả file
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"),
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"),
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Đặt "All Files" làm bộ lọc mặc định để hiển thị tất cả file
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null && file.exists()) { // Kiểm tra file không null và tồn tại
+            processGradesFile(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng chọn một file hợp lệ!");
+        }
+    }
+
+    // Xử lý file theo điểm
+    private void processGradesFile(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
+        String fileName = file.getName().toLowerCase();
+
+        if (fileName.endsWith(".json")) {
+            importFromJsonGrades(file);
+        } else if (fileName.endsWith(".xlsx")) {
+            importFromExcelGrades(file);
+        } else if (fileName.endsWith(".csv")) {
+            importFromCsvGrades(file);
+        } else {
+            AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
+        }
+    }
+
+    // Import theo JSON
+    // Import theo JSON
+    private void importFromJsonGrades(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<GradesData> grades = objectMapper.readValue(Paths.get(file.getAbsolutePath()).toFile(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, GradesData.class));
+
+            int duplicateCount = 0; // Đếm số điểm trùng (MSSV + course_id)
+            int successCount = 0; // Đếm số điểm thêm thành công
+            int errorCount = 0; // Đếm số lỗi khác
+
+            for (GradesData grade : grades) {
+                try {
+                    // Lấy thông tin school_year và course_id từ MSSV
+                    String studentID = grade.getStudentID();
+                    if (studentID == null || studentID.trim().isEmpty()) {
+                        throw new IllegalArgumentException("Mã sinh viên không được để trống trong file JSON.");
+                    }
+
+                    // Lấy school_year và subject từ bảng students
+                    String sqlStudent = """
+                                SELECT school_year, subject
+                                FROM students
+                                WHERE student_id = ?
+                            """;
+                    String schoolYear = null;
+                    String courseID = null;
+                    try (Connection connect = database.connectDB();
+                            PreparedStatement psStudent = connect.prepareStatement(sqlStudent)) {
+                        psStudent.setString(1, studentID);
+                        try (ResultSet rsStudent = psStudent.executeQuery()) {
+                            if (rsStudent.next()) {
+                                schoolYear = rsStudent.getString("school_year");
+                                courseID = rsStudent.getString("subject");
+                                if (courseID == null) {
+                                    throw new SQLException("Không tìm thấy môn học cho sinh viên " + studentID);
+                                }
+                            } else {
+                                throw new SQLException("Mã sinh viên " + studentID + " không tồn tại trong hệ thống.");
+                            }
+                        }
+                    }
+
+                    // Lấy course_name từ course_id
+                    String courseName = getCourseNameByCourseID(courseID);
+                    if (courseName == null) {
+                        throw new SQLException("Không tìm thấy tên môn học cho mã môn học: " + courseID);
+                    }
+
+                    // Kiểm tra định dạng và giá trị điểm
+                    float midtermGrade = grade.getMidtermGrade();
+                    float finalGrade = grade.getFinalGrade();
+                    if (midtermGrade < 0 || midtermGrade > 10 || finalGrade < 0 || finalGrade > 10) {
+                        throw new IllegalArgumentException(
+                                "Điểm của sinh viên " + studentID + " phải nằm trong khoảng 0 - 10.");
+                    }
+
+                    // Tạo đối tượng GradesData với thông tin tự động điền
+                    GradesData updatedGrade = new GradesData(studentID, schoolYear, courseID, courseName, midtermGrade,
+                            finalGrade, 0.0f);
+
+                    if (insertGradeIntoDatabase(updatedGrade)) {
+                        successCount++;
+                    } else {
+                        if (isGradeExists(studentID, courseID)) {
+                            duplicateCount++;
+                            AlertComponent.showWarning("Lỗi", null,
+                                    "Điểm của sinh viên " + studentID + " cho môn " + courseID + " đã tồn tại.");
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Lỗi khi thêm điểm cho sinh viên " + studentID + ": Dữ liệu không hợp lệ.");
+                        }
+                    }
+                } catch (Exception e) {
+                    errorCount++;
+                    AlertComponent.showError("Lỗi", null,
+                            "Lỗi khi xử lý điểm cho sinh viên "
+                                    + (grade.getStudentID() != null ? grade.getStudentID() : "không xác định") + ": "
+                                    + e.getMessage());
+                }
+            }
+
+            // Tạo thông báo dựa trên kết quả
+            String message = "Đã thêm " + successCount + " điểm thành công từ JSON!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " điểm bị bỏ qua (trùng MSSV và mã môn học).";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " lỗi khác xảy ra.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showGradesList(); // Cập nhật danh sách điểm trên TableView
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file JSON: " + e.getMessage());
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập điểm từ JSON: " + e.getMessage());
+        }
+    }
+
+    // Import theo Excel
+    private void importFromExcelGrades(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
+        try (FileInputStream fis = new FileInputStream(file);
+                Workbook workbook = new XSSFWorkbook(fis);
+                Connection connect = database.connectDB()) {
+
+            PreparedStatement preparedStatement = connect.prepareStatement(
+                    "INSERT INTO grades (student_id, school_year, course_id, midterm_grade, final_grade) VALUES (?, ?, ?, ?, ?)");
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue; // Bỏ qua dòng tiêu đề
+
+                try {
+                    String studentID = getCellStringValue(row.getCell(0));
+                    String midtermStr = getCellStringValue(row.getCell(1));
+                    String finalStr = getCellStringValue(row.getCell(2));
+
+                    if (studentID.isEmpty() || midtermStr.isEmpty() || finalStr.isEmpty()) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng " + (row.getRowNum() + 1));
+                    }
+
+                    // Chuyển điểm từ chuỗi sang float
+                    float midtermGrade, finalGrade;
+                    try {
+                        midtermGrade = Float.parseFloat(midtermStr);
+                        finalGrade = Float.parseFloat(finalStr);
+                        if (midtermGrade < 0 || midtermGrade > 10 || finalGrade < 0 || finalGrade > 10) {
+                            throw new NumberFormatException("Điểm phải nằm trong khoảng 0 - 10");
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(
+                                "Điểm không hợp lệ tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    }
+
+                    // Lấy school_year và course_id từ MSSV
+                    String sqlStudent = """
+                                SELECT school_year, subject
+                                FROM students
+                                WHERE student_id = ?
+                            """;
+                    String schoolYear = null;
+                    String courseID = null;
+                    try (PreparedStatement psStudent = connect.prepareStatement(sqlStudent)) {
+                        psStudent.setString(1, studentID);
+                        try (ResultSet rsStudent = psStudent.executeQuery()) {
+                            if (rsStudent.next()) {
+                                schoolYear = rsStudent.getString("school_year");
+                                courseID = rsStudent.getString("subject");
+                                if (courseID == null) {
+                                    throw new SQLException("Không tìm thấy môn học cho sinh viên " + studentID
+                                            + " tại dòng " + (row.getRowNum() + 1));
+                                }
+                            } else {
+                                throw new SQLException("Mã sinh viên " + studentID + " không tồn tại tại dòng "
+                                        + (row.getRowNum() + 1));
+                            }
+                        }
+                    }
+
+                    // Lấy course_name từ course_id
+                    String courseName = getCourseNameByCourseID(courseID);
+                    if (courseName == null) {
+                        throw new SQLException("Không tìm thấy tên môn học cho mã môn học: " + courseID + " tại dòng "
+                                + (row.getRowNum() + 1));
+                    }
+
+                    GradesData grade = new GradesData(studentID, schoolYear, courseID, courseName, midtermGrade,
+                            finalGrade, 0.0f); // total_grade không cần nhập
+
+                    if (!isGradeExists(studentID, courseID)) {
+                        preparedStatement.setString(1, studentID);
+                        preparedStatement.setString(2, schoolYear);
+                        preparedStatement.setString(3, courseID);
+                        preparedStatement.setFloat(4, midtermGrade);
+                        preparedStatement.setFloat(5, finalGrade);
+                        preparedStatement.addBatch();
+                        successCount++;
+                    } else {
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Điểm của sinh viên " + studentID + " cho môn "
+                                + courseID + " đã tồn tại tại dòng " + (row.getRowNum() + 1));
+                    }
+                } catch (Exception e) {
+                    if (e instanceof SQLException) {
+                        if (e.getMessage().contains("sinh viên") || e.getMessage().contains("môn học")) {
+                            duplicateCount++;
+                            AlertComponent.showError("Lỗi", null, e.getMessage());
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null,
+                                    "Lỗi SQL tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                        }
+                    } else if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null,
+                                "Dòng lỗi tại dòng " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            if (successCount > 0) {
+                preparedStatement.executeBatch();
+            }
+
+            String message = "Đã nhập " + successCount + " điểm thành công từ Excel!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " điểm trùng MSSV và mã môn học bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi khác.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showGradesList(); // Cập nhật danh sách điểm trên TableView
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file Excel: " + e.getMessage());
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi kết nối database khi nhập điểm: " + e.getMessage());
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập điểm từ Excel: " + e.getMessage());
+        }
+    }
+
+    // Import theo CSV
+    private void importFromCsvGrades(File file) {
+        if (file == null || !file.exists()) {
+            AlertComponent.showError("Lỗi", null, "File không tồn tại hoặc không hợp lệ!");
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            int successCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            while ((line = br.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+
+                try {
+                    String[] data = line.split(",");
+                    if (data.length < 3) {
+                        throw new IllegalArgumentException("Dữ liệu không đủ tại dòng hiện tại");
+                    }
+
+                    String studentID = data[0].trim();
+                    String midtermStr = data[1].trim();
+                    String finalStr = data[2].trim();
+
+                    if (studentID.isEmpty() || midtermStr.isEmpty() || finalStr.isEmpty()) {
+                        throw new IllegalArgumentException("Dữ liệu trống tại dòng hiện tại");
+                    }
+
+                    // Chuyển điểm từ chuỗi sang float
+                    float midtermGrade, finalGrade;
+                    try {
+                        midtermGrade = Float.parseFloat(midtermStr);
+                        finalGrade = Float.parseFloat(finalStr);
+                        if (midtermGrade < 0 || midtermGrade > 10 || finalGrade < 0 || finalGrade > 10) {
+                            throw new NumberFormatException("Điểm phải nằm trong khoảng 0 - 10");
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Điểm không hợp lệ tại dòng hiện tại: " + e.getMessage());
+                    }
+
+                    // Lấy school_year và course_id từ MSSV
+                    String sqlStudent = """
+                                SELECT school_year, subject
+                                FROM students
+                                WHERE student_id = ?
+                            """;
+                    String schoolYear = null;
+                    String courseID = null;
+                    try (Connection connect = database.connectDB();
+                            PreparedStatement psStudent = connect.prepareStatement(sqlStudent)) {
+                        psStudent.setString(1, studentID);
+                        try (ResultSet rsStudent = psStudent.executeQuery()) {
+                            if (rsStudent.next()) {
+                                schoolYear = rsStudent.getString("school_year");
+                                courseID = rsStudent.getString("subject");
+                                if (courseID == null) {
+                                    throw new SQLException(
+                                            "Không tìm thấy môn học cho sinh viên " + studentID + " tại dòng hiện tại");
+                                }
+                            } else {
+                                throw new SQLException(
+                                        "Mã sinh viên " + studentID + " không tồn tại tại dòng hiện tại");
+                            }
+                        }
+                    }
+
+                    // Lấy course_name từ course_id
+                    String courseName = getCourseNameByCourseID(courseID);
+                    if (courseName == null) {
+                        throw new SQLException(
+                                "Không tìm thấy tên môn học cho mã môn học: " + courseID + " tại dòng hiện tại");
+                    }
+
+                    GradesData grade = new GradesData(studentID, schoolYear, courseID, courseName, midtermGrade,
+                            finalGrade, 0.0f); // total_grade không cần nhập
+
+                    if (!isGradeExists(studentID, courseID)) {
+                        insertGradeIntoDatabase(grade);
+                        successCount++;
+                    } else {
+                        duplicateCount++;
+                        AlertComponent.showWarning("Lỗi", null, "Điểm của sinh viên " + studentID + " cho môn "
+                                + courseID + " đã tồn tại tại dòng hiện tại");
+                    }
+                } catch (Exception e) {
+                    if (e instanceof SQLException) {
+                        if (e.getMessage().contains("sinh viên") || e.getMessage().contains("môn học")) {
+                            duplicateCount++;
+                            AlertComponent.showError("Lỗi", null, e.getMessage());
+                        } else {
+                            errorCount++;
+                            AlertComponent.showError("Lỗi", null, "Lỗi SQL tại dòng hiện tại: " + e.getMessage());
+                        }
+                    } else if (e instanceof IllegalArgumentException) {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    } else {
+                        errorCount++;
+                        AlertComponent.showError("Lỗi", null, "Dòng lỗi tại dòng hiện tại: " + e.getMessage());
+                    }
+                }
+            }
+
+            String message = "Đã nhập " + successCount + " điểm thành công từ CSV!";
+            if (duplicateCount > 0) {
+                message += "\nCó " + duplicateCount + " điểm trùng MSSV và mã môn học bị bỏ qua.";
+            }
+            if (errorCount > 0) {
+                message += "\nCó " + errorCount + " dòng lỗi khác.";
+            }
+            AlertComponent.showInformation("Thành công", null, message);
+            showGradesList(); // Cập nhật danh sách điểm trên TableView
+        } catch (IOException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể đọc file CSV: " + e.getMessage());
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Không thể nhập điểm từ CSV: " + e.getMessage());
+        }
+    }
+
+    // Lấy course_name từ course_id
+    private String getCourseNameByCourseID(String courseID) {
+        String sql = "SELECT course_name FROM courses WHERE course_id = ?";
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+            preparedStatement.setString(1, courseID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("course_name");
+            }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể truy vấn tên môn học: " + e.getMessage());
+        }
+        return null; // Không tìm thấy course_id
+    }
+
+    // Xử lý thêm điểm vào database
+    private boolean insertGradeIntoDatabase(GradesData grade) throws SQLException {
+        String sql = "INSERT INTO grades (student_id, school_year, course_id, midterm_grade, final_grade) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+
+            // Kiểm tra sinh viên có tồn tại không
+            if (!isStudentExists(grade.getStudentID())) {
+                throw new SQLException("Mã sinh viên " + grade.getStudentID() + " không tồn tại trong hệ thống.");
+            }
+
+            // Kiểm tra mã môn học có tồn tại không
+            String courseIDFromDB = getCourseIDByName(grade.getCourseName());
+            if (courseIDFromDB == null || !courseIDFromDB.equals(grade.getCourseID())) {
+                throw new SQLException("Mã môn học " + grade.getCourseID()
+                        + " không tồn tại hoặc không khớp với tên môn học trong hệ thống.");
+            }
+
+            if (isGradeExists(grade.getStudentID(), grade.getCourseID())) {
+                AlertComponent.showWarning("Lỗi", null, "Điểm của sinh viên " + grade.getStudentID() + " cho môn "
+                        + grade.getCourseID() + " đã tồn tại.");
+                return false;
+            }
+
+            preparedStatement.setString(1, grade.getStudentID());
+            preparedStatement.setString(2, grade.getSchoolYear());
+            preparedStatement.setString(3, grade.getCourseID());
+            preparedStatement.setFloat(4, grade.getMidtermGrade());
+            preparedStatement.setFloat(5, grade.getFinalGrade());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Không thể thêm điểm vào database.");
+            }
+            return true;
         }
     }
 
