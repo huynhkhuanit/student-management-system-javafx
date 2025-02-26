@@ -17,7 +17,7 @@ public class showStage {
             stage.setTitle(title);
             stage.setScene(scene);
 
-            stage.getIcons().add(new Image(showStage.class.getResourceAsStream("../assets/img/favicon-app.png")));
+            // stage.getIcons().add(new Image(showStage.class.getResourceAsStream("../assets/img/favicon-app.png")));
 
             
             // Ẩn title bar mặc định của stages
