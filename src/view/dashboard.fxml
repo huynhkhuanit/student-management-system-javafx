@@ -238,7 +238,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="studentManageForm" layoutX="8.8" layoutY="5.0" prefHeight="542.0" prefWidth="874.0" styleClass="bg-line" visible="false" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="9.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="5.0">
+                        <AnchorPane fx:id="studentManageForm" layoutX="8.8" layoutY="5.0" prefHeight="542.0" prefWidth="874.0" styleClass="bg-line" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="9.0" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="5.0">
                            <children>
                               <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="528.0" prefWidth="874.0">
                                  <children>
@@ -298,6 +298,15 @@
                                        </styleClass>
                                        <graphic>
                                           <FontAwesomeIcon fill="WHITE" glyphName="UPLOAD" size="1.5em" />
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="btnDownloadStudents" layoutX="438.0" layoutY="11.0" mnemonicParsing="false" prefHeight="30.0" text="Xuất sinh viên">
+                                       <styleClass>
+                                          <String fx:value="controls__btn" />
+                                          <String fx:value="btn-update" />
+                                       </styleClass>
+                                       <graphic>
+                                          <FontAwesomeIcon fill="WHITE" glyphName="DOWNLOAD" size="1.5em" />
                                        </graphic>
                                     </Button>
                                  </children>
@@ -503,7 +512,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>

@@ -1,9 +1,12 @@
 package controller;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -16,7 +19,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 // JavaFX tools
@@ -33,6 +38,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -48,15 +54,11 @@ import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.io.FileInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.nio.file.Paths;
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 // Model data
 import model.StudentData;
+import model.ColumnHeader;
 import model.CourseData;
 import model.GradesData;
 import model.LecturerData;
@@ -123,7 +125,7 @@ public class dashboardController {
     @FXML
     private AnchorPane studentManageForm;
     @FXML
-    private Button studentManageBtn, btnImportStudents;
+    private Button studentManageBtn, btnImportStudents, btnDownloadStudents;
 
     // Bảng dữ liệu sinh viên
     @FXML
@@ -367,6 +369,8 @@ public class dashboardController {
 
         // Sự kiện mở form import sinh viên
         btnImportStudents.setOnAction(event -> openFileChooser());
+
+        btnDownloadStudents.setOnAction(event -> downloadStudentsFile());
 
         // ========== QUẢN LÝ SINH VIÊN ==========
 
@@ -1200,6 +1204,241 @@ public class dashboardController {
         } else {
             // Nếu file không hợp lệ, hiển thị cảnh báo
             AlertComponent.showWarning("Lỗi", null, "Định dạng file không hợp lệ! Vui lòng chọn JSON, Excel hoặc CSV.");
+        }
+    }
+
+    // Xuất file sinh viên
+    private void downloadStudentsFile() {
+        // Hiển thị dialog để người dùng chọn định dạng file
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        dialog.setTitle("Chọn định dạng file");
+        dialog.setHeaderText("Vui lòng chọn định dạng file để xuất:");
+        dialog.setContentText("Định dạng:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Lưu file sinh viên");
+
+            // Thêm các bộ lọc tương ứng với định dạng được chọn
+            switch (result.get()) {
+                case "JSON":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "Excel":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "CSV":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+            }
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    // Xuất file chính (JSON, Excel, hoặc CSV)
+                    switch (result.get()) {
+                        case "JSON":
+                            exportToJson(file);
+                            break;
+                        case "Excel":
+                            exportToExcel(file);
+                            break;
+                        case "CSV":
+                            exportToCsv(file);
+                            break;
+                    }
+                    AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                    // Tạo tên file .txt dựa trên tên file chính (thay .json/.xlsx/.csv bằng .txt)
+                    String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                    File instructionFile = new File(txtFileName);
+
+                    // Kiểm tra nếu file .txt chưa tồn tại, thì xuất hướng dẫn
+                    if (!instructionFile.exists()) {
+                        exportInstructionsToTxt(instructionFile);
+                        AlertComponent.showInformation("Thành công", null,
+                                "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                    }
+
+                    AlertComponent.showWarning("Lưu ý", null, "Vui lòng đọc file hướng dẫn để điền đúng!");
+                } catch (Exception e) {
+                    AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Xuất file hướng dẫn .txt
+    private void exportInstructionsToTxt(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            String[] instructions = {
+                    "HƯỚNG DẪN NHẬP DỮ LIỆU CHO FILE JSON, EXCEL, HOẶC CSV:",
+                    "1. Ngày sinh (birth_date): Nhập theo định dạng 'MM/dd/yyyy', ví dụ: '06/25/2004'",
+                    "2. Năm học (school_year): Chỉ nhập từ 'Năm 1' đến 'Năm 4'",
+                    "3. Môn học (subject): Nhập theo danh sách trong Quản lý môn học (xem bảng Courses)",
+                    "4. Trạng thái (status): Chỉ nhập: 'Đang học', 'Bảo lưu', hoặc 'Nghỉ học'",
+                    "5. Giới tính (gender): Chỉ nhập 'Nam' hoặc 'Nữ'"
+            };
+
+            for (String instruction : instructions) {
+                writer.write(instruction);
+                writer.newLine();
+            }
+        }
+    }
+
+    // Xuất danh sách sinh viên sang file JSON
+    private void exportToJson(File file) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setDateFormat(new SimpleDateFormat("MM/dd/yyyy")); // Định dạng ngày cho JSON
+
+        ObservableList<StudentData> students = studentTable.getItems();
+        if (students == null || students.isEmpty()) {
+            // Nếu TableView trống, kiểm tra database
+            students = addStudentsListData(); // Lấy dữ liệu từ database
+            if (students == null || students.isEmpty()) {
+                // Nếu database trống, xuất chỉ tiêu đề cột
+                List<ColumnHeader> headers = new ArrayList<>();
+                headers.add(new ColumnHeader(
+                        "student_id", "first_name", "last_name", "birth_date", "gender", "school_year", "major",
+                        "subject", "status", ""));
+                objectMapper.writeValue(file, headers);
+            } else {
+                objectMapper.writeValue(file, students);
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất trực tiếp
+            objectMapper.writeValue(file, students);
+        }
+    }
+
+    // Xuất danh sách sinh viên sang file Excel
+    private void exportToExcel(File file) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Students");
+
+        ObservableList<StudentData> students = studentTable.getItems();
+        int rowNum = 0;
+
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "student_id", "first_name", "last_name", "birth_date", "gender", "school_year", "major",
+                "subject", "status" };
+
+        // Tạo tiêu đề cột
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        if (students == null || students.isEmpty()) {
+            // Nếu TableView trống, kiểm tra database
+            students = addStudentsListData(); // Lấy dữ liệu từ database
+            if (students == null || students.isEmpty()) {
+                // Nếu database trống, chỉ xuất tiêu đề
+            } else {
+                // Nếu database có dữ liệu, xuất danh sách
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                for (StudentData student : students) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(student.getStudentID());
+                    row.createCell(1).setCellValue(student.getFirstName());
+                    row.createCell(2).setCellValue(student.getLastName());
+                    row.createCell(3).setCellValue(dateFormat.format(student.getBirthDate()));
+                    row.createCell(4).setCellValue(student.getGender());
+                    row.createCell(5).setCellValue(student.getSchoolYear());
+                    row.createCell(6).setCellValue(student.getMajor());
+                    row.createCell(7).setCellValue(student.getSubject());
+                    row.createCell(8).setCellValue(student.getStatus());
+                }
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất danh sách
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            for (StudentData student : students) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(student.getStudentID());
+                row.createCell(1).setCellValue(student.getFirstName());
+                row.createCell(2).setCellValue(student.getLastName());
+                row.createCell(3).setCellValue(dateFormat.format(student.getBirthDate()));
+                row.createCell(4).setCellValue(student.getGender());
+                row.createCell(5).setCellValue(student.getSchoolYear());
+                row.createCell(6).setCellValue(student.getMajor());
+                row.createCell(7).setCellValue(student.getSubject());
+                row.createCell(8).setCellValue(student.getStatus());
+            }
+        }
+
+        // Tự động điều chỉnh chiều rộng cột
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Ghi file
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    // Xuất danh sách sinh viên sang file CSV
+    private void exportToCsv(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            String[] headers = { "student_id", "first_name", "last_name", "birth_date", "gender", "school_year",
+                    "major", "subject", "status" };
+            StringBuilder line = new StringBuilder();
+
+            // Ghi tiêu đề
+            for (int i = 0; i < headers.length; i++) {
+                line.append(headers[i]);
+                if (i < headers.length - 1)
+                    line.append(",");
+            }
+            writer.write(line.toString());
+            writer.newLine();
+
+            ObservableList<StudentData> students = studentTable.getItems();
+            if (students != null && !students.isEmpty()) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                for (StudentData student : students) {
+                    line.setLength(0); // Xóa nội dung cũ
+                    line.append(student.getStudentID()).append(",")
+                            .append(student.getFirstName()).append(",")
+                            .append(student.getLastName()).append(",")
+                            .append(dateFormat.format(student.getBirthDate())).append(",")
+                            .append(student.getGender()).append(",")
+                            .append(student.getSchoolYear()).append(",")
+                            .append(student.getMajor()).append(",")
+                            .append(student.getSubject()).append(",")
+                            .append(student.getStatus());
+                    writer.write(line.toString());
+                    writer.newLine();
+                }
+            } else {
+                // Nếu TableView trống, kiểm tra database
+                students = addStudentsListData(); // Lấy dữ liệu từ database
+                if (students != null && !students.isEmpty()) {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                    for (StudentData student : students) {
+                        line.setLength(0); // Xóa nội dung cũ
+                        line.append(student.getStudentID()).append(",")
+                                .append(student.getFirstName()).append(",")
+                                .append(student.getLastName()).append(",")
+                                .append(dateFormat.format(student.getBirthDate())).append(",")
+                                .append(student.getGender()).append(",")
+                                .append(student.getSchoolYear()).append(",")
+                                .append(student.getMajor()).append(",")
+                                .append(student.getSubject()).append(",")
+                                .append(student.getStatus());
+                        writer.write(line.toString());
+                        writer.newLine();
+                    }
+                }
+            }
         }
     }
 
