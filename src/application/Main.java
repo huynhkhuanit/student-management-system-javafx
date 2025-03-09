@@ -1,5 +1,11 @@
 package application;
 
+/*
+ * Author: huynhkhuan
+ * co-author: maitrongquang
+ * Completed: 03/09/2025.
+ */
+
 import javafx.fxml.*;
 import javafx.scene.*;
 import javafx.application.Application;
