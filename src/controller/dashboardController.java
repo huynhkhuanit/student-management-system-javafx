@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -168,7 +169,7 @@ public class dashboardController {
     // ========== MÔN HỌC PROPERTY ==========
 
     @FXML
-    private Button courseManageBtn, btnUploadSubjects;
+    private Button courseManageBtn, btnUploadSubjects, btnDownloadSubjects;
     @FXML
     private AnchorPane courseManageForm;
     @FXML
@@ -396,6 +397,7 @@ public class dashboardController {
         // Đặt tooltip cho btnUploadSubjects
         btnUploadSubjects.setTooltip(CustomTooltip.createTooltip(("Uploads danh sách môn học từ files!")));
         btnUploadSubjects.setOnAction(event -> openSubjectFileChooser());
+        btnDownloadSubjects.setOnAction(event -> downloadSubjectsFile());
 
         // ========== QUẢN LÝ MÔN HỌC ==========
 
@@ -2244,6 +2246,197 @@ public class dashboardController {
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
                 throw new SQLException("Không thể thêm môn học vào database.");
+            }
+        }
+    }
+
+    // Xuất file môn học
+    private void downloadSubjectsFile() {
+        // Hiển thị dialog để người dùng chọn định dạng file
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        dialog.setTitle("Chọn định dạng file");
+        dialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách môn học:");
+        dialog.setContentText("Định dạng:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Lưu file danh sách môn học");
+
+            // Thêm các bộ lọc tương ứng với định dạng được chọn
+            switch (result.get()) {
+                case "JSON":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "Excel":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "CSV":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+            }
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    // Xuất file chính (JSON, Excel, hoặc CSV)
+                    switch (result.get()) {
+                        case "JSON":
+                            exportCoursesToJson(file);
+                            break;
+                        case "Excel":
+                            exportCoursesToExcel(file);
+                            break;
+                        case "CSV":
+                            exportCoursesToCsv(file);
+                            break;
+                    }
+                    AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                    // Tạo tên file .txt dựa trên tên file chính (thay .json/.xlsx/.csv bằng .txt)
+                    String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                    File instructionFile = new File(txtFileName);
+
+                    // Kiểm tra nếu file .txt chưa tồn tại, thì xuất hướng dẫn
+                    if (!instructionFile.exists()) {
+                        exportInstructionsToTxt(instructionFile);
+                        AlertComponent.showInformation("Thành công", null,
+                                "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                    }
+                } catch (Exception e) {
+                    AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Xuất danh sách môn học sang file JSON
+    private void exportCoursesToJson(File file) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setDateFormat(new SimpleDateFormat("MM/dd/yyyy")); // Định dạng ngày (nếu cần)
+
+        ObservableList<CourseData> courses = tblSubjects.getItems();
+        if (courses == null || courses.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            courses = getCoursesListData();
+            if (courses == null || courses.isEmpty()) {
+                // Nếu database trống, xuất chỉ tiêu đề cột
+                List<String> headers = Arrays.asList("course_id", "course_name", "credits", "lecturer", "semester",
+                        "status");
+                objectMapper.writeValue(file, headers);
+            } else {
+                objectMapper.writeValue(file, courses);
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất trực tiếp
+            objectMapper.writeValue(file, courses);
+        }
+    }
+
+    // Xuất danh sách môn học sang file Excel
+    private void exportCoursesToExcel(File file) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Courses");
+
+        ObservableList<CourseData> courses = tblSubjects.getItems();
+        int rowNum = 0;
+
+        // Tạo tiêu đề cột
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "course_id", "course_name", "credits", "lecturer", "semester", "status" };
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        if (courses == null || courses.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            courses = getCoursesListData();
+            if (courses != null && !courses.isEmpty()) {
+                // Nếu database có dữ liệu, xuất danh sách
+                for (CourseData course : courses) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(course.getSubjectID());
+                    row.createCell(1).setCellValue(course.getSubjectName());
+                    row.createCell(2).setCellValue(course.getCredits());
+                    row.createCell(3).setCellValue(course.getLecturer());
+                    row.createCell(4).setCellValue(course.getSemester());
+                    row.createCell(5).setCellValue(course.getStatus());
+                }
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất danh sách
+            for (CourseData course : courses) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(course.getSubjectID());
+                row.createCell(1).setCellValue(course.getSubjectName());
+                row.createCell(2).setCellValue(course.getCredits());
+                row.createCell(3).setCellValue(course.getLecturer());
+                row.createCell(4).setCellValue(course.getSemester());
+                row.createCell(5).setCellValue(course.getStatus());
+            }
+        }
+
+        // Tự động điều chỉnh chiều rộng cột
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Ghi file
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    // Xuất danh sách môn học sang file CSV
+    private void exportCoursesToCsv(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            String[] headers = { "course_id", "course_name", "credits", "lecturer", "semester", "status" };
+            StringBuilder line = new StringBuilder();
+
+            // Ghi tiêu đề
+            for (int i = 0; i < headers.length; i++) {
+                line.append(headers[i]);
+                if (i < headers.length - 1)
+                    line.append(",");
+            }
+            writer.write(line.toString());
+            writer.newLine();
+
+            ObservableList<CourseData> courses = tblSubjects.getItems();
+            if (courses != null && !courses.isEmpty()) {
+                for (CourseData course : courses) {
+                    line.setLength(0); // Xóa nội dung cũ
+                    line.append(course.getSubjectID()).append(",")
+                            .append(course.getSubjectName()).append(",")
+                            .append(course.getCredits()).append(",")
+                            .append("\"" + course.getLecturer() + "\"").append(",")
+                            .append(course.getSemester()).append(",")
+                            .append(course.getStatus());
+                    writer.write(line.toString());
+                    writer.newLine();
+                }
+            } else {
+                // Nếu TableView trống, lấy từ database
+                courses = getCoursesListData();
+                if (courses != null && !courses.isEmpty()) {
+                    for (CourseData course : courses) {
+                        line.setLength(0); // Xóa nội dung cũ
+                        line.append(course.getSubjectID()).append(",")
+                                .append(course.getSubjectName()).append(",")
+                                .append(course.getCredits()).append(",")
+                                .append("\"" + course.getLecturer() + "\"").append(",")
+                                .append(course.getSemester()).append(",")
+                                .append(course.getStatus());
+                        writer.write(line.toString());
+                        writer.newLine();
+                    }
+                }
             }
         }
     }
