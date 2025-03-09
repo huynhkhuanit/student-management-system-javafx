@@ -424,7 +424,7 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="lecturerManageForm" layoutX="14.0" layoutY="14.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
@@ -530,35 +530,35 @@
                               </AnchorPane>
                            </children>
                         </AnchorPane>
-                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <AnchorPane fx:id="gradesManageForm" layoutX="9.0" layoutY="13.0" prefHeight="554.0" prefWidth="904.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="8.0" layoutY="9.0" prefHeight="535.0" prefWidth="303.0" styleClass="bg-line">
                                  <children>
-                                    <Button fx:id="btnAddGrades" layoutX="28.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
+                                    <Button fx:id="btnAddGrades" layoutX="28.0" layoutY="325.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Thêm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
                                        </styleClass>
                                     </Button>
-                                    <Button fx:id="btnDeleteGrades" layoutX="27.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá">
+                                    <Button fx:id="btnDeleteGrades" layoutX="27.0" layoutY="376.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá">
                                        <styleClass>
                                           <String fx:value="btn-delete" />
                                           <String fx:value="controls__btn" />
                                        </styleClass>
                                     </Button>
-                                    <Button fx:id="btnClearAllGrades" layoutX="157.0" layoutY="394.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá toàn bộ">
+                                    <Button fx:id="btnClearAllGrades" layoutX="157.0" layoutY="376.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Xoá toàn bộ">
                                        <styleClass>
                                           <String fx:value="btn-delete" />
                                           <String fx:value="controls__btn" />
                                        </styleClass>
                                     </Button>
-                                    <Button fx:id="btnUpdateGrades" layoutX="27.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Cập nhật">
+                                    <Button fx:id="btnUpdateGrades" layoutX="27.0" layoutY="430.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Cập nhật">
                                        <styleClass>
                                           <String fx:value="btn-update" />
                                           <String fx:value="controls__btn" />
                                        </styleClass>
                                     </Button>
-                                    <Button fx:id="btnClearFormGrades" layoutX="157.0" layoutY="448.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
+                                    <Button fx:id="btnClearFormGrades" layoutX="157.0" layoutY="430.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" styleClass="student__form__close__btn" text="Xoá thông tin" />
                                     <Label alignment="CENTER_RIGHT" layoutX="14.0" layoutY="57.0" prefHeight="18.0" prefWidth="88.0" text="MSSV:">
                                        <font>
                                           <Font name="Tahoma" size="14.0" />
@@ -600,13 +600,22 @@
                                           <Font name="Tahoma Bold" size="18.0" />
                                        </font>
                                     </Label>
-                                    <Button fx:id="btnUploadGrades" layoutX="157.0" layoutY="343.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Nhập điểm">
+                                    <Button fx:id="btnUploadGrades" layoutX="157.0" layoutY="325.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="120.0" text="Nhập điểm">
                                        <styleClass>
                                           <String fx:value="btn-add" />
                                           <String fx:value="controls__btn" />
                                        </styleClass>
                                        <graphic>
                                           <FontAwesomeIcon fill="WHITE" glyphName="UPLOAD" />
+                                       </graphic>
+                                    </Button>
+                                    <Button fx:id="btnDownloadGrades" layoutX="27.0" layoutY="481.0" minWidth="106.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="249.0" text="Xuất điểm">
+                                       <styleClass>
+                                          <String fx:value="btn-update" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                       <graphic>
+                                          <FontAwesomeIcon fill="WHITE" glyphName="DOWNLOAD" size="1.5em" />
                                        </graphic>
                                     </Button>
                                  </children>

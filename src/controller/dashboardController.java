@@ -21,9 +21,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 // JavaFX tools
 import components.AlertComponent;
@@ -221,7 +224,7 @@ public class dashboardController {
 
     @FXML
     private Button btnAddGrades, btnDeleteGrades, btnClearAllGrades, btnUpdateGrades,
-            btnClearFormGrades, gradesManageBtn, btnUploadGrades;
+            btnClearFormGrades, gradesManageBtn, btnUploadGrades, btnDownloadGrades;
 
     @FXML
     private TableView<GradesData> tableGrades;
@@ -463,6 +466,7 @@ public class dashboardController {
         });
 
         btnUploadGrades.setOnAction(event -> openGradesFileChooser());
+        btnDownloadGrades.setOnAction(event -> downloadGradesFile());
 
         // ========== QUẢN LÝ ĐIỂM ==========
 
@@ -1285,8 +1289,13 @@ public class dashboardController {
                     "1. Ngày sinh (birth_date): Nhập theo định dạng 'MM/dd/yyyy', ví dụ: '06/25/2004'",
                     "2. Năm học (school_year): Chỉ nhập từ 'Năm 1' đến 'Năm 4'",
                     "3. Môn học (subject): Nhập theo danh sách trong Quản lý môn học (xem bảng Courses)",
-                    "4. Trạng thái (status): Chỉ nhập: 'Đang học', 'Bảo lưu', hoặc 'Nghỉ học'",
-                    "5. Giới tính (gender): Chỉ nhập 'Nam' hoặc 'Nữ'"
+                    "4. Trạng thái (status) đối với sinh viên: Chỉ nhập: 'Đang học', 'Bảo lưu', hoặc 'Nghỉ học'",
+                    "5. Trạng thái (status) đối với môn học: Chỉ nhập: 'Đang mở', 'Đóng'",
+                    "6. Trạng thái (status) đối với giảng viên: Chỉ nhập: 'Đang giảng dạy', 'Nghỉ phép', 'Đã nghỉ hưu'",
+                    "7. Giảng viên phụ trách môn học: Chính xác theo bảng giảng viên (Xem Lecturers)",
+                    "8. Học kỳ: Chỉ nhập: 'Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3'",
+                    "9. Học hàm / học vị: Chỉ nhập: 'Cử nhân', 'Thạc sĩ', 'Tiến sĩ', 'Phó giáo sư', 'Giáo sư'",
+                    "10. Giới tính (gender): Chỉ nhập 'Nam' hoặc 'Nữ'"
             };
 
             for (String instruction : instructions) {
@@ -4296,6 +4305,198 @@ public class dashboardController {
             AlertComponent.showError("Lỗi", null, "Không thể truy vấn tên môn học: " + e.getMessage());
         }
         return null; // Không tìm thấy course_id
+    }
+
+    // Xuất file danh sách điểm số
+    private void downloadGradesFile() {
+        // Hiển thị dialog để người dùng chọn định dạng file
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        dialog.setTitle("Chọn định dạng file");
+        dialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách điểm số:");
+        dialog.setContentText("Định dạng:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Lưu file danh sách điểm số");
+
+            // Thêm các bộ lọc tương ứng với định dạng được chọn
+            switch (result.get()) {
+                case "JSON":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "Excel":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "CSV":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+            }
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    // Xuất file chính (JSON, Excel, hoặc CSV)
+                    switch (result.get()) {
+                        case "JSON":
+                            exportGradesToJson(file);
+                            break;
+                        case "Excel":
+                            exportGradesToExcel(file);
+                            break;
+                        case "CSV":
+                            exportGradesToCsv(file);
+                            break;
+                    }
+                    AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                    // Tạo tên file .txt dựa trên tên file chính (thay .json/.xlsx/.csv bằng .txt)
+                    String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                    File instructionFile = new File(txtFileName);
+
+                    // Kiểm tra nếu file .txt chưa tồn tại, thì xuất hướng dẫn
+                    if (!instructionFile.exists()) {
+                        exportInstructionsToTxt(instructionFile);
+                        AlertComponent.showInformation("Thành công", null,
+                                "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                    }
+                } catch (Exception e) {
+                    AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Xuất danh sách điểm số sang file JSON
+    private void exportGradesToJson(File file) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        ObservableList<GradesData> grades = tableGrades.getItems();
+        if (grades == null || grades.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            grades = getGradesListData();
+            if (grades == null || grades.isEmpty()) {
+                // Nếu database trống, xuất chỉ tiêu đề cột
+                List<String> headers = Arrays.asList("student_id", "midterm_grade", "final_grade");
+                objectMapper.writeValue(file, headers);
+            } else {
+                // Tạo danh sách JSON với định dạng rút gọn
+                List<Map<String, Object>> simplifiedGrades = grades.stream().map(grade -> {
+                    Map<String, Object> simplifiedGrade = new HashMap<>();
+                    simplifiedGrade.put("student_id", grade.getStudentID());
+                    simplifiedGrade.put("midterm_grade", grade.getMidtermGrade());
+                    simplifiedGrade.put("final_grade", grade.getFinalGrade());
+                    return simplifiedGrade;
+                }).collect(Collectors.toList());
+                objectMapper.writeValue(file, simplifiedGrades);
+            }
+        } else {
+            // Tạo danh sách JSON với định dạng rút gọn
+            List<Map<String, Object>> simplifiedGrades = grades.stream().map(grade -> {
+                Map<String, Object> simplifiedGrade = new HashMap<>();
+                simplifiedGrade.put("student_id", grade.getStudentID());
+                simplifiedGrade.put("midterm_grade", grade.getMidtermGrade());
+                simplifiedGrade.put("final_grade", grade.getFinalGrade());
+                return simplifiedGrade;
+            }).collect(Collectors.toList());
+            objectMapper.writeValue(file, simplifiedGrades);
+        }
+    }
+
+    // Xuất danh sách điểm số sang file Excel
+    private void exportGradesToExcel(File file) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Grades");
+
+        ObservableList<GradesData> grades = tableGrades.getItems();
+        int rowNum = 0;
+
+        // Tạo tiêu đề cột
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "student_id", "midterm_grade", "final_grade" };
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        if (grades == null || grades.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            grades = getGradesListData();
+            if (grades != null && !grades.isEmpty()) {
+                // Nếu database có dữ liệu, xuất danh sách
+                for (GradesData grade : grades) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(grade.getStudentID());
+                    row.createCell(1).setCellValue(grade.getMidtermGrade());
+                    row.createCell(2).setCellValue(grade.getFinalGrade());
+                }
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất danh sách
+            for (GradesData grade : grades) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(grade.getStudentID());
+                row.createCell(1).setCellValue(grade.getMidtermGrade());
+                row.createCell(2).setCellValue(grade.getFinalGrade());
+            }
+        }
+
+        // Tự động điều chỉnh chiều rộng cột
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Ghi file
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    // Xuất danh sách điểm số sang file CSV
+    private void exportGradesToCsv(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            String[] headers = { "student_id", "midterm_grade", "final_grade" };
+            StringBuilder line = new StringBuilder();
+
+            // Ghi tiêu đề
+            for (int i = 0; i < headers.length; i++) {
+                line.append(headers[i]);
+                if (i < headers.length - 1)
+                    line.append(",");
+            }
+            writer.write(line.toString());
+            writer.newLine();
+
+            ObservableList<GradesData> grades = tableGrades.getItems();
+            if (grades != null && !grades.isEmpty()) {
+                for (GradesData grade : grades) {
+                    line.setLength(0); // Xóa nội dung cũ
+                    line.append(grade.getStudentID()).append(",")
+                            .append(grade.getMidtermGrade()).append(",")
+                            .append(grade.getFinalGrade());
+                    writer.write(line.toString());
+                    writer.newLine();
+                }
+            } else {
+                // Nếu TableView trống, lấy từ database
+                grades = getGradesListData();
+                if (grades != null && !grades.isEmpty()) {
+                    for (GradesData grade : grades) {
+                        line.setLength(0); // Xóa nội dung cũ
+                        line.append(grade.getStudentID()).append(",")
+                                .append(grade.getMidtermGrade()).append(",")
+                                .append(grade.getFinalGrade());
+                        writer.write(line.toString());
+                        writer.newLine();
+                    }
+                }
+            }
+        }
     }
 
     // ========== QUẢN LÝ ĐIỂM ==========
