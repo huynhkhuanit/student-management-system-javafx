@@ -190,7 +190,7 @@ public class dashboardController {
 
     // =========== QUẢN LÝ GIẢNG VIÊN ===========
     @FXML
-    private Button lecturerManageBtn, btnUploadLecturer;
+    private Button lecturerManageBtn, btnUploadLecturer, btnDownloadLecturer;
     @FXML
     private AnchorPane lecturerManageForm;
     @FXML
@@ -428,6 +428,8 @@ public class dashboardController {
         // Tạo tooltip cho nút Upload giảng viên
         btnUploadLecturer.setTooltip(CustomTooltip.createTooltip(
                 "- Đối với file excel hãy tuân thủ theo cấu trúc của quản lý đặt ra!\n- Cấu trúc file excel:\n \t| LecturerID | LecturerName | Gender | Degree | Phone | Status |"));
+
+        btnDownloadLecturer.setOnAction(event -> downloadLecturerFile());
 
         // ========== QUẢN LÝ GIẢNG VIÊN ==========
 
@@ -3171,6 +3173,196 @@ public class dashboardController {
         } catch (SQLException e) {
             AlertComponent.showError("Lỗi", null, "Lỗi database khi thêm giảng viên: " + e.getMessage());
             return false;
+        }
+    }
+
+    // Xuất file danh sách giảng viên
+    private void downloadLecturerFile() {
+        // Hiển thị dialog để người dùng chọn định dạng file
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        dialog.setTitle("Chọn định dạng file");
+        dialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách giảng viên:");
+        dialog.setContentText("Định dạng:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Lưu file danh sách giảng viên");
+
+            // Thêm các bộ lọc tương ứng với định dạng được chọn
+            switch (result.get()) {
+                case "JSON":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "Excel":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+                case "CSV":
+                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+                    break;
+            }
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    // Xuất file chính (JSON, Excel, hoặc CSV)
+                    switch (result.get()) {
+                        case "JSON":
+                            exportLecturersToJson(file);
+                            break;
+                        case "Excel":
+                            exportLecturersToExcel(file);
+                            break;
+                        case "CSV":
+                            exportLecturersToCsv(file);
+                            break;
+                    }
+                    AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                    // Tạo tên file .txt dựa trên tên file chính (thay .json/.xlsx/.csv bằng .txt)
+                    String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                    File instructionFile = new File(txtFileName);
+
+                    // Kiểm tra nếu file .txt chưa tồn tại, thì xuất hướng dẫn
+                    if (!instructionFile.exists()) {
+                        exportInstructionsToTxt(instructionFile);
+                        AlertComponent.showInformation("Thành công", null,
+                                "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                    }
+                } catch (Exception e) {
+                    AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Xuất danh sách giảng viên sang file JSON
+    private void exportLecturersToJson(File file) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        ObservableList<LecturerData> lecturers = tableLecturer.getItems();
+        if (lecturers == null || lecturers.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            lecturers = getLecturerListData();
+            if (lecturers == null || lecturers.isEmpty()) {
+                // Nếu database trống, xuất chỉ tiêu đề cột
+                List<String> headers = Arrays.asList("lecturer_id", "lecturer_name", "gender", "degree", "phone",
+                        "status");
+                objectMapper.writeValue(file, headers);
+            } else {
+                objectMapper.writeValue(file, lecturers);
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất trực tiếp
+            objectMapper.writeValue(file, lecturers);
+        }
+    }
+
+    // Xuất danh sách giảng viên sang file Excel
+    private void exportLecturersToExcel(File file) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Lecturers");
+
+        ObservableList<LecturerData> lecturers = tableLecturer.getItems();
+        int rowNum = 0;
+
+        // Tạo tiêu đề cột
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "lecturer_id", "lecturer_name", "gender", "degree", "phone", "status" };
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        if (lecturers == null || lecturers.isEmpty()) {
+            // Nếu TableView trống, lấy từ database
+            lecturers = getLecturerListData();
+            if (lecturers != null && !lecturers.isEmpty()) {
+                // Nếu database có dữ liệu, xuất danh sách
+                for (LecturerData lecturer : lecturers) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(lecturer.getLecturerID());
+                    row.createCell(1).setCellValue(lecturer.getLecturerName());
+                    row.createCell(2).setCellValue(lecturer.getGender());
+                    row.createCell(3).setCellValue(lecturer.getDegree());
+                    row.createCell(4).setCellValue(lecturer.getPhone());
+                    row.createCell(5).setCellValue(lecturer.getStatus());
+                }
+            }
+        } else {
+            // Nếu TableView có dữ liệu, xuất danh sách
+            for (LecturerData lecturer : lecturers) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(lecturer.getLecturerID());
+                row.createCell(1).setCellValue(lecturer.getLecturerName());
+                row.createCell(2).setCellValue(lecturer.getGender());
+                row.createCell(3).setCellValue(lecturer.getDegree());
+                row.createCell(4).setCellValue(lecturer.getPhone());
+                row.createCell(5).setCellValue(lecturer.getStatus());
+            }
+        }
+
+        // Tự động điều chỉnh chiều rộng cột
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Ghi file
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    // Xuất danh sách giảng viên sang file CSV
+    private void exportLecturersToCsv(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            String[] headers = { "lecturer_id", "lecturer_name", "gender", "degree", "phone", "status" };
+            StringBuilder line = new StringBuilder();
+
+            // Ghi tiêu đề
+            for (int i = 0; i < headers.length; i++) {
+                line.append(headers[i]);
+                if (i < headers.length - 1)
+                    line.append(",");
+            }
+            writer.write(line.toString());
+            writer.newLine();
+
+            ObservableList<LecturerData> lecturers = tableLecturer.getItems();
+            if (lecturers != null && !lecturers.isEmpty()) {
+                for (LecturerData lecturer : lecturers) {
+                    line.setLength(0); // Xóa nội dung cũ
+                    line.append(lecturer.getLecturerID()).append(",")
+                            .append("\"" + lecturer.getLecturerName() + "\"").append(",")
+                            .append(lecturer.getGender()).append(",")
+                            .append(lecturer.getDegree()).append(",")
+                            .append(lecturer.getPhone()).append(",")
+                            .append(lecturer.getStatus());
+                    writer.write(line.toString());
+                    writer.newLine();
+                }
+            } else {
+                // Nếu TableView trống, lấy từ database
+                lecturers = getLecturerListData();
+                if (lecturers != null && !lecturers.isEmpty()) {
+                    for (LecturerData lecturer : lecturers) {
+                        line.setLength(0); // Xóa nội dung cũ
+                        line.append(lecturer.getLecturerID()).append(",")
+                                .append("\"" + lecturer.getLecturerName() + "\"").append(",")
+                                .append(lecturer.getGender()).append(",")
+                                .append(lecturer.getDegree()).append(",")
+                                .append(lecturer.getPhone()).append(",")
+                                .append(lecturer.getStatus());
+                        writer.write(line.toString());
+                        writer.newLine();
+                    }
+                }
+            }
         }
     }
 
