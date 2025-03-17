@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.41, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
 --
 -- Host: localhost    Database: student_system_database
 -- ------------------------------------------------------
--- Server version	8.0.41
+-- Server version	8.0.40
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -76,7 +76,7 @@ CREATE TABLE `courses` (
 
 LOCK TABLES `courses` WRITE;
 /*!40000 ALTER TABLE `courses` DISABLE KEYS */;
-INSERT INTO `courses` VALUES ('MH001','Lập trình Java',3,'GV002','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH002','Cơ sở dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH003','Thiết kế hệ thống',3,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH004','Mạng máy tính',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH005','Kiến trúc phần mềm',3,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH006','Lập trình Web',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH007','Xử lý ảnh và video',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH008','Phát triển ứng dụng di động',3,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH009','Hệ điều hành',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH010','Quản lý dự án phần mềm',4,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH011','Công nghệ Blockchain',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH012','Khoa học dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH013','Học máy',3,'GV001','Học kỳ 1','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH014','Trí tuệ nhân tạo',4,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22'),('MH015','Thực tập tốt nghiệp',6,'GV001','Học kỳ 2','Đang mở','2025-03-09 16:04:22','2025-03-09 16:04:22');
+INSERT INTO `courses` VALUES ('MH001','Lập trình Java',3,'GV002','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH002','Cơ sở dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH003','Thiết kế hệ thống',3,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH004','Mạng máy tính',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH005','Kiến trúc phần mềm',3,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH006','Lập trình Web',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH007','Xử lý ảnh và video',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH008','Phát triển ứng dụng di động',3,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH009','Hệ điều hành',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH010','Quản lý dự án phần mềm',4,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH011','Công nghệ Blockchain',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH012','Khoa học dữ liệu',4,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH013','Học máy',3,'GV001','Học kỳ 1','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH014','Trí tuệ nhân tạo',4,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51'),('MH015','Thực tập tốt nghiệp',6,'GV001','Học kỳ 2','Đang mở','2025-03-17 18:14:51','2025-03-17 18:14:51');
 /*!40000 ALTER TABLE `courses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -104,7 +104,7 @@ CREATE TABLE `grades` (
   CONSTRAINT `grades_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE CASCADE,
   CONSTRAINT `grades_chk_1` CHECK ((`midterm_grade` between 0 and 10)),
   CONSTRAINT `grades_chk_2` CHECK ((`final_grade` between 0 and 10))
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +113,7 @@ CREATE TABLE `grades` (
 
 LOCK TABLES `grades` WRITE;
 /*!40000 ALTER TABLE `grades` DISABLE KEYS */;
-INSERT INTO `grades` (`id`, `student_id`, `school_year`, `course_id`, `midterm_grade`, `final_grade`) VALUES (20,'2205CT0020','Năm 3','MH002',7,8),(21,'2205CT0019','Năm 3','MH002',8,9),(22,'2205CT0015','Năm 2','MH002',7,8);
+INSERT INTO `grades` (`id`, `student_id`, `school_year`, `course_id`, `midterm_grade`, `final_grade`) VALUES (19,'2205CT0019','Năm 3','MH002',8,9),(20,'2205CT0015','Năm 2','MH002',7,8);
 /*!40000 ALTER TABLE `grades` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,7 +178,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES ('2205CT0013','Nguyen','Van A','2004-02-24','Nam','Năm 3','Công nghệ thông tin','MH014','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0014','Tran','Thi B','2003-05-15','Nữ','Năm 4','Kinh tế','MH003','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0015','Le','Van C','2005-11-30','Nam','Năm 2','Công nghệ thông tin','MH002','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0016','Pham','Thi D','2002-07-10','Nữ','Năm 4','Y khoa','MH002','Tốt nghiệp',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0017','Hoang','Van E','2004-03-22','Nam','Năm 3','Kỹ thuật','MH002','Bảo lưu',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0018','Nguyen','Thi F','2005-09-05','Nữ','Năm 2','Công nghệ thông tin','MH001','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0019','Tran','Van G','2003-12-12','Nam','Năm 3','Kinh tế','MH002','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0020','Le','Thi H','2004-04-18','Nữ','Năm 3','Y khoa','MH002','Nghỉ học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34'),('2205CT0021','Pham','Van I','2005-08-25','Nam','Năm 2','Kỹ thuật','MH002','Đang học',NULL,'2025-03-09 16:04:34','2025-03-09 16:04:34');
+INSERT INTO `students` VALUES ('2205CT0013','Nguyen','Van A','2004-02-24','Nam','Năm 3','Công nghệ thông tin','MH014','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0014','Tran','Thi B','2003-05-15','Nữ','Năm 4','Kinh tế','MH003','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0015','Le','Van C','2005-11-30','Nam','Năm 2','Công nghệ thông tin','MH002','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0016','Pham','Thi D','2002-07-10','Nữ','Năm 4','Y khoa','MH002','Tốt nghiệp',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0017','Hoang','Van E','2004-03-22','Nam','Năm 3','Kỹ thuật','MH002','Bảo lưu',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0018','Nguyen','Thi F','2005-09-05','Nữ','Năm 2','Công nghệ thông tin','MH001','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0019','Tran','Van G','2003-12-12','Nam','Năm 3','Kinh tế','MH002','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0020','Le','Thi H','2004-04-18','Nữ','Năm 3','Y khoa','MH002','Nghỉ học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07'),('2205CT0021','Pham','Van I','2005-08-25','Nam','Năm 2','Kỹ thuật','MH002','Đang học',NULL,'2025-03-17 18:15:07','2025-03-17 18:15:07');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -210,4 +210,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-09 23:10:29
+-- Dump completed on 2025-03-18  1:15:42

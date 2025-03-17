@@ -1,0 +1,11 @@
+HƯỚNG DẪN NHẬP DỮ LIỆU CHO FILE JSON, EXCEL, HOẶC CSV:
+1. Ngày sinh (birth_date): Nhập theo định dạng 'MM/dd/yyyy', ví dụ: '06/25/2004'
+2. Năm học (school_year): Chỉ nhập từ 'Năm 1' đến 'Năm 4'
+3. Môn học (subject): Nhập theo danh sách trong Quản lý môn học (xem bảng Courses)
+4. Trạng thái (status) đối với sinh viên: Chỉ nhập: 'Đang học', 'Bảo lưu', hoặc 'Nghỉ học'
+5. Trạng thái (status) đối với môn học: Chỉ nhập: 'Đang mở', 'Đóng'
+6. Trạng thái (status) đối với giảng viên: Chỉ nhập: 'Đang giảng dạy', 'Nghỉ phép', 'Đã nghỉ hưu'
+7. Giảng viên phụ trách môn học: Chính xác theo bảng giảng viên (Xem Lecturers)
+8. Học kỳ: Chỉ nhập: 'Học kỳ 1', 'Học kỳ 2', 'Học kỳ 3'
+9. Học hàm / học vị: Chỉ nhập: 'Cử nhân', 'Thạc sĩ', 'Tiến sĩ', 'Phó giáo sư', 'Giáo sư'
+10. Giới tính (gender): Chỉ nhập 'Nam' hoặc 'Nữ'
