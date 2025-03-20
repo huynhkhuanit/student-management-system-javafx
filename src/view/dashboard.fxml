@@ -309,6 +309,15 @@
                                           <FontAwesomeIcon fill="WHITE" glyphName="DOWNLOAD" size="1.5em" />
                                        </graphic>
                                     </Button>
+                                    <Button fx:id="btnExportActiveStudents" layoutX="594.0" layoutY="11.0" mnemonicParsing="false" prefHeight="30.0" text="Xuất file xác nhận trạng thái">
+                                       <styleClass>
+                                          <String fx:value="controls__btn" />
+                                          <String fx:value="btn-update" />
+                                       </styleClass>
+                                       <graphic>
+                                          <FontAwesomeIcon fill="WHITE" glyphName="DOWNLOAD" size="1.5em" />
+                                       </graphic>
+                                    </Button>
                                  </children>
                                  <styleClass>
                                     <String fx:value="shadow" />
@@ -634,6 +643,18 @@
                                     </TableView>
                                     <TextField fx:id="txtSearchGrades" layoutX="10.0" layoutY="8.0" prefHeight="30.0" prefWidth="221.0" promptText="Tìm kiếm" styleClass="btn-search" />
                                     <FontAwesomeIcon glyphName="SEARCH" layoutX="17.0" layoutY="29.0" size="1.5em" />
+                                    <Button fx:id="btnSuggestImprovement" layoutX="240.0" layoutY="7.0" minWidth="106.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="152.0" text="Môn cần cải thiện">
+                                       <styleClass>
+                                          <String fx:value="btn-add" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
+                                    <Button fx:id="btnAccumulateCredits" layoutX="399.0" layoutY="7.0" minWidth="106.0" mnemonicParsing="false" prefHeight="32.0" prefWidth="128.0" text="Tích lũy tín chỉ">
+                                       <styleClass>
+                                          <String fx:value="btn-update" />
+                                          <String fx:value="controls__btn" />
+                                       </styleClass>
+                                    </Button>
                                  </children>
                               </AnchorPane>
                            </children>

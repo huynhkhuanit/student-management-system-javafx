@@ -19,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,11 +29,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 
 // JavaFX tools
 import components.AlertComponent;
 import components.CustomTooltip;
 import javafx.fxml.FXML;
+import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -42,6 +52,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.AnchorPane;
@@ -53,6 +64,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
@@ -64,7 +76,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import model.StudentData;
 import model.ColumnHeader;
 import model.CourseData;
+import model.CreditData;
 import model.GradesData;
+import model.ImprovementData;
 import model.LecturerData;
 import database.database;
 
@@ -129,7 +143,7 @@ public class dashboardController {
     @FXML
     private AnchorPane studentManageForm;
     @FXML
-    private Button studentManageBtn, btnImportStudents, btnDownloadStudents;
+    private Button studentManageBtn, btnImportStudents, btnDownloadStudents, btnExportActiveStudents;
 
     // Bảng dữ liệu sinh viên
     @FXML
@@ -224,7 +238,8 @@ public class dashboardController {
 
     @FXML
     private Button btnAddGrades, btnDeleteGrades, btnClearAllGrades, btnUpdateGrades,
-            btnClearFormGrades, gradesManageBtn, btnUploadGrades, btnDownloadGrades;
+            btnClearFormGrades, gradesManageBtn, btnUploadGrades, btnDownloadGrades, btnSuggestImprovement,
+            btnAccumulateCredits;
 
     @FXML
     private TableView<GradesData> tableGrades;
@@ -376,6 +391,9 @@ public class dashboardController {
 
         btnDownloadStudents.setOnAction(event -> downloadStudentsFile());
 
+        // Thêm sự kiện cho nút xuất file xác nhận trạng thái
+        btnExportActiveStudents.setOnAction(event -> exportActiveStudents());
+
         // ========== QUẢN LÝ SINH VIÊN ==========
 
         // ========== QUẢN LÝ MÔN HỌC ==========
@@ -467,6 +485,8 @@ public class dashboardController {
 
         btnUploadGrades.setOnAction(event -> openGradesFileChooser());
         btnDownloadGrades.setOnAction(event -> downloadGradesFile());
+        btnSuggestImprovement.setOnAction(event -> suggestImprovement()); // Gợi ý cải thiện điểm
+        btnAccumulateCredits.setOnAction(event -> accumulateCredits()); // Tính tổng số tín chỉ
 
         // ========== QUẢN LÝ ĐIỂM ==========
 
@@ -1451,6 +1471,190 @@ public class dashboardController {
                         writer.newLine();
                     }
                 }
+            }
+        }
+    }
+
+    // Xuất danh sách sinh viên đang học
+    private void exportActiveStudents() {
+        // Chọn định dạng file
+        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        formatDialog.setTitle("Chọn định dạng file");
+        formatDialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách sinh viên đang học:");
+        formatDialog.setContentText("Định dạng:");
+
+        Optional<String> formatResult = formatDialog.showAndWait();
+        if (!formatResult.isPresent())
+            return; // Người dùng hủy dialog
+
+        // Chọn vị trí lưu file
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu file xác nhận trạng thái đi học");
+        fileChooser
+                .setInitialFileName("DanhSachSinhVienDangHoc_" + new SimpleDateFormat("yyyyMMdd").format(new Date()));
+        String selectedFormat = formatResult.get();
+
+        switch (selectedFormat) {
+            case "JSON":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                break;
+            case "Excel":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                break;
+            case "CSV":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                break;
+        }
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                // Lấy danh sách sinh viên đang học trong khối try
+                ObservableList<StudentData> activeStudents = getActiveStudents();
+                if (activeStudents.isEmpty()) {
+                    AlertComponent.showWarning("Thông báo", null, "Không có sinh viên nào đang học trong hệ thống!");
+                    return;
+                }
+
+                // Xuất file theo định dạng đã chọn
+                switch (selectedFormat) {
+                    case "JSON":
+                        exportActiveStudentsToJson(file, activeStudents);
+                        break;
+                    case "Excel":
+                        exportActiveStudentsToExcel(file, activeStudents);
+                        break;
+                    case "CSV":
+                        exportActiveStudentsToCsv(file, activeStudents);
+                        break;
+                }
+                AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                // Xuất file hướng dẫn nếu chưa tồn tại
+                String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                File instructionFile = new File(txtFileName);
+                if (!instructionFile.exists()) {
+                    exportInstructionsToTxt(instructionFile);
+                    AlertComponent.showInformation("Thành công", null,
+                            "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                }
+            } catch (SQLException e) {
+                AlertComponent.showError("Lỗi", null, "Lỗi truy vấn cơ sở dữ liệu: " + e.getMessage());
+                e.printStackTrace();
+            } catch (IOException e) {
+                AlertComponent.showError("Lỗi", null, "Không thể lưu file: " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                AlertComponent.showError("Lỗi", null, "Lỗi không xác định khi xuất file: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Lấy danh sách sinh viên đang học
+    private ObservableList<StudentData> getActiveStudents() throws SQLException {
+        ObservableList<StudentData> activeStudents = FXCollections.observableArrayList();
+        String sql = """
+                SELECT s.student_id, s.first_name, s.last_name, s.school_year, s.major, c.course_name
+                FROM students s
+                LEFT JOIN courses c ON s.subject = c.course_id
+                WHERE s.status = 'Đang học'
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String fullName = resultSet.getString("first_name") + " " + resultSet.getString("last_name");
+                activeStudents.add(new StudentData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("first_name"), // Để tương thích với model, nhưng không dùng trực tiếp
+                        resultSet.getString("last_name"), // Để tương thích với model, nhưng không dùng trực tiếp
+                        null, // birth_date không cần trong báo cáo này
+                        null, // gender không cần
+                        resultSet.getString("school_year"),
+                        resultSet.getString("major"),
+                        resultSet.getString("course_name"),
+                        "Đang học",
+                        null // photo_path không cần
+                ));
+            }
+        }
+        return activeStudents;
+    }
+
+    // Xuất danh sách sinh viên đang học sang file JSON
+    private void exportActiveStudentsToJson(File file, ObservableList<StudentData> activeStudents) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> data = new HashMap<>();
+        data.put("total_active_students", activeStudents.size());
+        List<Map<String, String>> studentList = activeStudents.stream().map(student -> {
+            Map<String, String> studentData = new HashMap<>();
+            studentData.put("student_id", student.getStudentID());
+            studentData.put("full_name", student.getFirstName() + " " + student.getLastName());
+            studentData.put("school_year", student.getSchoolYear());
+            studentData.put("major", student.getMajor());
+            studentData.put("subject", student.getSubject());
+            return studentData;
+        }).collect(Collectors.toList());
+        data.put("active_students", studentList);
+
+        objectMapper.writeValue(file, data);
+    }
+
+    // Xuất danh sách sinh viên đang học sang file Excel
+    private void exportActiveStudentsToExcel(File file, ObservableList<StudentData> activeStudents) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Danh sách sinh viên đang học");
+
+        int rowNum = 0;
+        Row summaryRow = sheet.createRow(rowNum++);
+        summaryRow.createCell(0).setCellValue("Tổng số sinh viên đang học: " + activeStudents.size());
+
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "MSSV", "Họ tên", "Năm học", "Chuyên ngành", "Môn học" };
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
+
+        for (StudentData student : activeStudents) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(student.getStudentID());
+            row.createCell(1).setCellValue(student.getFirstName() + " " + student.getLastName());
+            row.createCell(2).setCellValue(student.getSchoolYear());
+            row.createCell(3).setCellValue(student.getMajor());
+            row.createCell(4).setCellValue(student.getSubject());
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    // Xuất danh sách sinh viên đang học sang file CSV
+    private void exportActiveStudentsToCsv(File file, ObservableList<StudentData> activeStudents) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("Tổng số sinh viên đang học," + activeStudents.size());
+            writer.newLine();
+            writer.write("MSSV,Họ tên,Năm học,Chuyên ngành,Môn học");
+            writer.newLine();
+
+            for (StudentData student : activeStudents) {
+                String line = String.format("%s,\"%s\",%s,%s,%s",
+                        student.getStudentID(),
+                        student.getFirstName() + " " + student.getLastName(),
+                        student.getSchoolYear(),
+                        student.getMajor(),
+                        student.getSubject());
+                writer.write(line);
+                writer.newLine();
             }
         }
     }
@@ -4309,64 +4513,272 @@ public class dashboardController {
 
     // Xuất file danh sách điểm số
     private void downloadGradesFile() {
-        // Hiển thị dialog để người dùng chọn định dạng file
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
-        dialog.setTitle("Chọn định dạng file");
-        dialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách điểm số:");
-        dialog.setContentText("Định dạng:");
+        // Hiển thị dialog với hai lựa chọn
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Toàn bộ danh sách", "Toàn bộ danh sách",
+                "Bảng điểm từng sinh viên");
+        dialog.setTitle("Chọn loại xuất file");
+        dialog.setHeaderText("Vui lòng chọn loại dữ liệu để xuất:");
+        dialog.setContentText("Loại xuất:");
 
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Lưu file danh sách điểm số");
+        if (!result.isPresent())
+            return; // Người dùng hủy dialog
 
-            // Thêm các bộ lọc tương ứng với định dạng được chọn
-            switch (result.get()) {
-                case "JSON":
-                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
-                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
-                    break;
-                case "Excel":
-                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
-                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
-                    break;
-                case "CSV":
-                    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
-                    fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
-                    break;
-            }
+        String choice = result.get();
+        if ("Toàn bộ danh sách".equals(choice)) {
+            // Xuất toàn bộ danh sách (giữ nguyên logic cũ)
+            exportFullGradesList();
+        } else if ("Bảng điểm từng sinh viên".equals(choice)) {
+            // Xuất bảng điểm từng sinh viên
+            exportIndividualGrade();
+        }
+    }
 
-            File file = fileChooser.showSaveDialog(null);
-            if (file != null) {
-                try {
-                    // Xuất file chính (JSON, Excel, hoặc CSV)
-                    switch (result.get()) {
-                        case "JSON":
-                            exportGradesToJson(file);
-                            break;
-                        case "Excel":
-                            exportGradesToExcel(file);
-                            break;
-                        case "CSV":
-                            exportGradesToCsv(file);
-                            break;
-                    }
-                    AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+    private void exportFullGradesList() {
+        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        formatDialog.setTitle("Chọn định dạng file");
+        formatDialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách điểm số:");
+        formatDialog.setContentText("Định dạng:");
 
-                    // Tạo tên file .txt dựa trên tên file chính (thay .json/.xlsx/.csv bằng .txt)
-                    String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
-                    File instructionFile = new File(txtFileName);
+        Optional<String> formatResult = formatDialog.showAndWait();
+        if (!formatResult.isPresent())
+            return;
 
-                    // Kiểm tra nếu file .txt chưa tồn tại, thì xuất hướng dẫn
-                    if (!instructionFile.exists()) {
-                        exportInstructionsToTxt(instructionFile);
-                        AlertComponent.showInformation("Thành công", null,
-                                "Đã xuất file hướng dẫn: " + instructionFile.getName());
-                    }
-                } catch (Exception e) {
-                    AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
-                    e.printStackTrace();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu file danh sách điểm số");
+        String selectedFormat = formatResult.get();
+
+        switch (selectedFormat) {
+            case "JSON":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                break;
+            case "Excel":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                break;
+            case "CSV":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                break;
+        }
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                switch (selectedFormat) {
+                    case "JSON":
+                        exportGradesToJson(file);
+                        break;
+                    case "Excel":
+                        exportGradesToExcel(file);
+                        break;
+                    case "CSV":
+                        exportGradesToCsv(file);
+                        break;
                 }
+                AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+
+                String txtFileName = file.getAbsolutePath().replaceAll("\\.(json|xlsx|csv)$", ".txt");
+                File instructionFile = new File(txtFileName);
+                if (!instructionFile.exists()) {
+                    exportInstructionsToTxt(instructionFile);
+                    AlertComponent.showInformation("Thành công", null,
+                            "Đã xuất file hướng dẫn: " + instructionFile.getName());
+                }
+            } catch (Exception e) {
+                AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void exportIndividualGrade() {
+        // Yêu cầu người dùng nhập MSSV
+        TextInputDialog mssvDialog = new TextInputDialog();
+        mssvDialog.setTitle("Nhập MSSV");
+        mssvDialog.setHeaderText("Vui lòng nhập MSSV của sinh viên cần xuất bảng điểm:");
+        mssvDialog.setContentText("MSSV:");
+
+        Optional<String> mssvResult = mssvDialog.showAndWait();
+        if (!mssvResult.isPresent() || mssvResult.get().trim().isEmpty()) {
+            AlertComponent.showWarning("Lỗi", null, "Vui lòng nhập MSSV hợp lệ!");
+            return;
+        }
+
+        String studentID = mssvResult.get().trim();
+        if (!isStudentExists(studentID)) {
+            AlertComponent.showError("Lỗi", null, "MSSV " + studentID + " không tồn tại trong hệ thống!");
+            return;
+        }
+
+        // Lấy thông tin sinh viên để kiểm tra
+        String studentName = getStudentNameByID(studentID);
+        ObservableList<GradesData> studentGrades = getGradesForStudent(studentID);
+        if (studentGrades.isEmpty()) {
+            AlertComponent.showWarning("Lỗi", null, "Sinh viên " + studentID + " chưa có dữ liệu điểm!");
+            return;
+        }
+
+        // Chọn định dạng file
+        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        formatDialog.setTitle("Chọn định dạng file");
+        formatDialog.setHeaderText("Vui lòng chọn định dạng file cho bảng điểm của sinh viên " + studentID + ":");
+        formatDialog.setContentText("Định dạng:");
+
+        Optional<String> formatResult = formatDialog.showAndWait();
+        if (!formatResult.isPresent())
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu bảng điểm sinh viên " + studentID);
+        fileChooser.setInitialFileName("BangDiem_" + studentID); // Đặt tên mặc định
+        String selectedFormat = formatResult.get();
+
+        switch (selectedFormat) {
+            case "JSON":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                break;
+            case "Excel":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                break;
+            case "CSV":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                break;
+        }
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                switch (selectedFormat) {
+                    case "JSON":
+                        exportStudentGradeToJson(file, studentID, studentName, studentGrades);
+                        break;
+                    case "Excel":
+                        exportStudentGradeToExcel(file, studentID, studentName, studentGrades);
+                        break;
+                    case "CSV":
+                        exportStudentGradeToCsv(file, studentID, studentName, studentGrades);
+                        break;
+                }
+                AlertComponent.showInformation("Thành công", null, "Đã xuất bảng điểm thành công: " + file.getName());
+            } catch (IOException e) {
+                AlertComponent.showError("Lỗi", null, "Không thể lưu file: " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                AlertComponent.showError("Lỗi", null, "Lỗi không xác định khi xuất file: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String getStudentNameByID(String studentID) {
+        String sql = "SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM students WHERE student_id = ?";
+        return getSingleResult(sql, studentID);
+    }
+
+    private ObservableList<GradesData> getGradesForStudent(String studentID) {
+        ObservableList<GradesData> gradesList = FXCollections.observableArrayList();
+        String sql = """
+                SELECT g.student_id, s.school_year, COALESCE(g.course_id, s.subject) AS course_id,
+                       c.course_name, g.midterm_grade, g.final_grade, g.total_grade
+                FROM grades g
+                JOIN students s ON g.student_id = s.student_id
+                LEFT JOIN courses c ON COALESCE(g.course_id, s.subject) = c.course_id
+                WHERE g.student_id = ?
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql)) {
+            preparedStatement.setString(1, studentID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                gradesList.add(new GradesData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("school_year"),
+                        resultSet.getString("course_id"),
+                        resultSet.getString("course_name"),
+                        resultSet.getFloat("midterm_grade"),
+                        resultSet.getFloat("final_grade"),
+                        resultSet.getFloat("total_grade")));
+            }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Không thể truy vấn điểm của sinh viên: " + e.getMessage());
+        }
+        return gradesList;
+    }
+
+    private void exportStudentGradeToJson(File file, String studentID, String studentName,
+            ObservableList<GradesData> grades) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> studentData = new HashMap<>();
+        studentData.put("student_id", studentID);
+        studentData.put("student_name", studentName);
+        List<Map<String, Object>> gradeList = grades.stream().map(grade -> {
+            Map<String, Object> gradeData = new HashMap<>();
+            gradeData.put("school_year", grade.getSchoolYear());
+            gradeData.put("course_name", grade.getCourseName());
+            gradeData.put("midterm_grade", grade.getMidtermGrade());
+            gradeData.put("final_grade", grade.getFinalGrade());
+            gradeData.put("total_grade", grade.getTotalGrade());
+            return gradeData;
+        }).collect(Collectors.toList());
+        studentData.put("grades", gradeList);
+
+        objectMapper.writeValue(file, studentData);
+    }
+
+    private void exportStudentGradeToExcel(File file, String studentID, String studentName,
+            ObservableList<GradesData> grades) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Bảng Điểm - " + studentID);
+
+        int rowNum = 0;
+        Row infoRow = sheet.createRow(rowNum++);
+        infoRow.createCell(0).setCellValue("MSSV: " + studentID);
+        infoRow.createCell(1).setCellValue("Họ tên: " + studentName);
+
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "Năm học", "Tên môn học", "Điểm giữa kỳ", "Điểm cuối kỳ", "Điểm tổng kết" };
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
+
+        for (GradesData grade : grades) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(grade.getSchoolYear());
+            row.createCell(1).setCellValue(grade.getCourseName());
+            row.createCell(2).setCellValue(grade.getMidtermGrade());
+            row.createCell(3).setCellValue(grade.getFinalGrade());
+            row.createCell(4).setCellValue(grade.getTotalGrade());
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    private void exportStudentGradeToCsv(File file, String studentID, String studentName,
+            ObservableList<GradesData> grades) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("MSSV," + studentID);
+            writer.newLine();
+            writer.write("Họ tên," + studentName);
+            writer.newLine();
+            writer.write("Năm học,Tên môn học,Điểm giữa kỳ,Điểm cuối kỳ,Điểm tổng kết");
+            writer.newLine();
+
+            for (GradesData grade : grades) {
+                String line = String.format("%s,%s,%.2f,%.2f,%.2f",
+                        grade.getSchoolYear(), grade.getCourseName(),
+                        grade.getMidtermGrade(), grade.getFinalGrade(), grade.getTotalGrade());
+                writer.write(line);
+                writer.newLine();
             }
         }
     }
@@ -4495,6 +4907,558 @@ public class dashboardController {
                         writer.newLine();
                     }
                 }
+            }
+        }
+    }
+
+    private void suggestImprovement() {
+        try {
+            // Lấy danh sách môn cần cải thiện
+            ObservableList<ImprovementData> improvements = getImprovementSuggestions();
+            if (improvements.isEmpty()) {
+                AlertComponent.showInformation("Thông báo", null, "Không có sinh viên nào cần cải thiện điểm!");
+                return;
+            }
+
+            // Hiển thị dialog chọn hành động
+            ChoiceDialog<String> actionDialog = new ChoiceDialog<>("Hiển thị trên giao diện", "Hiển thị trên giao diện",
+                    "Xuất file");
+            actionDialog.setTitle("Chọn hành động");
+            actionDialog.setHeaderText("Vui lòng chọn cách hiển thị danh sách đề xuất:");
+            actionDialog.setContentText("Hành động:");
+
+            Optional<String> actionResult = actionDialog.showAndWait();
+            if (!actionResult.isPresent())
+                return;
+
+            String action = actionResult.get();
+            if ("Hiển thị trên giao diện".equals(action)) {
+                showImprovementSuggestions(improvements);
+            } else if ("Xuất file".equals(action)) {
+                exportImprovementSuggestions(improvements);
+            }
+        } catch (SQLException e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi truy vấn cơ sở dữ liệu: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            AlertComponent.showError("Lỗi", null, "Lỗi không xác định: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private ObservableList<ImprovementData> getImprovementSuggestions() throws SQLException {
+        ObservableList<ImprovementData> improvements = FXCollections.observableArrayList();
+        String sql = """
+                SELECT g.student_id, CONCAT(s.first_name, ' ', s.last_name) AS full_name,
+                       c.course_name, g.total_grade
+                FROM grades g
+                JOIN students s ON g.student_id = s.student_id
+                LEFT JOIN courses c ON g.course_id = c.course_id
+                WHERE g.total_grade < 5.0
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                improvements.add(new ImprovementData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("full_name"),
+                        resultSet.getString("course_name"),
+                        resultSet.getFloat("total_grade")));
+            }
+        }
+        return improvements;
+    }
+
+    private void showImprovementSuggestions(ObservableList<ImprovementData> improvements) {
+        TableView<ImprovementData> table = new TableView<>();
+        table.setItems(improvements);
+
+        TableColumn<ImprovementData, String> studentIDCol = new TableColumn<>("MSSV");
+        studentIDCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStudentID()));
+
+        TableColumn<ImprovementData, String> fullNameCol = new TableColumn<>("Họ tên");
+        fullNameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFullName()));
+
+        TableColumn<ImprovementData, String> courseNameCol = new TableColumn<>("Môn học");
+        courseNameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getCourseName()));
+
+        TableColumn<ImprovementData, Number> totalGradeCol = new TableColumn<>("Điểm tổng kết");
+        totalGradeCol.setCellValueFactory(data -> new SimpleFloatProperty(data.getValue().getTotalGrade()));
+
+        table.getColumns().addAll(studentIDCol, fullNameCol, courseNameCol, totalGradeCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        Stage stage = new Stage();
+        stage.setTitle("Danh sách môn cần cải thiện");
+        stage.setScene(new Scene(table, 600, 400));
+        stage.show();
+    }
+
+    private void exportImprovementSuggestions(ObservableList<ImprovementData> improvements) throws IOException {
+        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        formatDialog.setTitle("Chọn định dạng file");
+        formatDialog.setHeaderText("Vui lòng chọn định dạng file để xuất danh sách đề xuất:");
+        formatDialog.setContentText("Định dạng:");
+
+        Optional<String> formatResult = formatDialog.showAndWait();
+        if (!formatResult.isPresent())
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu file đề xuất môn cần cải thiện");
+        fileChooser
+                .setInitialFileName("DeXuatCaiThienDiem_" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        String selectedFormat = formatResult.get();
+
+        switch (selectedFormat) {
+            case "JSON":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                break;
+            case "Excel":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                break;
+            case "CSV":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                break;
+        }
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            switch (selectedFormat) {
+                case "JSON":
+                    exportImprovementsToJson(file, improvements);
+                    break;
+                case "Excel":
+                    exportImprovementsToExcel(file, improvements);
+                    break;
+                case "CSV":
+                    exportImprovementsToCsv(file, improvements);
+                    break;
+            }
+            AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+        }
+    }
+
+    private void exportImprovementsToJson(File file, ObservableList<ImprovementData> improvements) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> improvementList = improvements.stream().map(data -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("student_id", data.getStudentID());
+            map.put("full_name", data.getFullName());
+            map.put("course_name", data.getCourseName());
+            map.put("total_grade", data.getTotalGrade());
+            return map;
+        }).collect(Collectors.toList());
+        objectMapper.writeValue(file, improvementList);
+    }
+
+    private void exportImprovementsToExcel(File file, ObservableList<ImprovementData> improvements) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Đề xuất cải thiện điểm");
+
+        int rowNum = 0;
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "MSSV", "Họ tên", "Môn học", "Điểm tổng kết" };
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
+
+        for (ImprovementData data : improvements) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(data.getStudentID());
+            row.createCell(1).setCellValue(data.getFullName());
+            row.createCell(2).setCellValue(data.getCourseName());
+            row.createCell(3).setCellValue(data.getTotalGrade());
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    private void exportImprovementsToCsv(File file, ObservableList<ImprovementData> improvements) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("MSSV,Họ tên,Môn học,Điểm tổng kết");
+            writer.newLine();
+
+            for (ImprovementData data : improvements) {
+                String line = String.format("%s,\"%s\",%s,%.2f",
+                        data.getStudentID(), data.getFullName(), data.getCourseName(), data.getTotalGrade());
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+    }
+
+    private void accumulateCredits() {
+        Connection connect = null;
+        try {
+            connect = database.connectDB();
+            connect.setAutoCommit(false); // Bắt đầu transaction
+
+            // Tính toán và cập nhật tín chỉ
+            ObservableList<CreditData> creditData = updateAndGetAccumulatedCredits(connect);
+            if (creditData.isEmpty()) {
+                AlertComponent.showInformation("Thông báo", null, "Không có sinh viên nào để tích lũy tín chỉ!");
+                connect.rollback();
+                return;
+            }
+
+            // Hiển thị dialog chọn hành động
+            ChoiceDialog<String> actionDialog = new ChoiceDialog<>("Hiển thị trên giao diện", "Hiển thị trên giao diện",
+                    "Xuất file");
+            actionDialog.setTitle("Chọn hành động");
+            actionDialog.setHeaderText("Vui lòng chọn cách hiển thị tín chỉ tích lũy trước khi xóa:");
+            actionDialog.setContentText("Hành động:");
+
+            Optional<String> actionResult = actionDialog.showAndWait();
+            if (!actionResult.isPresent()) {
+                connect.rollback();
+                return;
+            }
+
+            String action = actionResult.get();
+            if ("Hiển thị trên giao diện".equals(action)) {
+                showAccumulatedCredits(creditData);
+            } else if ("Xuất file".equals(action)) {
+                exportAccumulatedCredits(creditData);
+            }
+
+            // Xác nhận xóa sinh viên
+            Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmation.setTitle("Xác nhận xóa");
+            confirmation.setHeaderText("Bạn có muốn xóa các sinh viên đã tích lũy tín chỉ?");
+            confirmation.setContentText("Dữ liệu điểm và thông tin sinh viên sẽ bị xóa khỏi hệ thống.");
+            Optional<ButtonType> result = confirmation.showAndWait();
+
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                deleteStudentsAfterAccumulation(connect, creditData);
+                AlertComponent.showInformation("Thành công", null, "Đã xóa sinh viên sau khi tích lũy tín chỉ!");
+                // Cập nhật lại giao diện quản lý sinh viên và điểm
+                addStudentsShowList();
+                showGradesList();
+            } else {
+                AlertComponent.showInformation("Hủy bỏ", null, "Dữ liệu sinh viên được giữ nguyên.");
+            }
+
+            connect.commit();
+        } catch (SQLException e) {
+            if (connect != null) {
+                try {
+                    connect.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            AlertComponent.showError("Lỗi", null, "Lỗi truy vấn hoặc cập nhật cơ sở dữ liệu: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            if (connect != null) {
+                try {
+                    connect.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            AlertComponent.showError("Lỗi", null, "Không thể xuất file: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            if (connect != null) {
+                try {
+                    connect.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            AlertComponent.showError("Lỗi", null, "Lỗi không xác định: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (connect != null) {
+                try {
+                    connect.setAutoCommit(true);
+                    connect.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private ObservableList<CreditData> updateAndGetAccumulatedCredits(Connection connect) throws SQLException {
+        ObservableList<CreditData> creditData = FXCollections.observableArrayList();
+
+        // Tính tổng tín chỉ cho từng sinh viên
+        String selectSql = """
+                SELECT g.student_id, CONCAT(s.first_name, ' ', s.last_name) AS full_name,
+                       COALESCE(SUM(c.credits), 0) AS total_credits
+                FROM grades g
+                JOIN students s ON g.student_id = s.student_id
+                JOIN courses c ON g.course_id = c.course_id
+                WHERE g.total_grade >= 5.0
+                GROUP BY g.student_id, s.first_name, s.last_name
+                """;
+
+        Map<String, CreditData> creditMap = new HashMap<>();
+        try (PreparedStatement selectStmt = connect.prepareStatement(selectSql);
+                ResultSet resultSet = selectStmt.executeQuery()) {
+            while (resultSet.next()) {
+                String studentID = resultSet.getString("student_id");
+                String fullName = resultSet.getString("full_name");
+                int totalCredits = resultSet.getInt("total_credits");
+                creditMap.put(studentID, new CreditData(studentID, fullName, totalCredits));
+            }
+        }
+
+        if (creditMap.isEmpty()) {
+            return creditData;
+        }
+
+        // Cập nhật tín chỉ tích lũy vào bảng students
+        String updateSql = "UPDATE students SET credits_accumulated = ? WHERE student_id = ?";
+        try (PreparedStatement updateStmt = connect.prepareStatement(updateSql)) {
+            for (CreditData data : creditMap.values()) {
+                updateStmt.setInt(1, data.getCreditsAccumulated());
+                updateStmt.setString(2, data.getStudentID());
+                updateStmt.executeUpdate();
+                creditData.add(data);
+            }
+        }
+
+        return creditData;
+    }
+
+    private void deleteStudentsAfterAccumulation(Connection connect, ObservableList<CreditData> creditData)
+            throws SQLException {
+        // Xóa khỏi bảng grades
+        String deleteGradesSql = "DELETE FROM grades WHERE student_id = ?";
+        try (PreparedStatement deleteGradesStmt = connect.prepareStatement(deleteGradesSql)) {
+            for (CreditData data : creditData) {
+                deleteGradesStmt.setString(1, data.getStudentID());
+                deleteGradesStmt.executeUpdate();
+            }
+        }
+
+        // Xóa khỏi bảng students
+        String deleteStudentsSql = "DELETE FROM students WHERE student_id = ?";
+        try (PreparedStatement deleteStudentsStmt = connect.prepareStatement(deleteStudentsSql)) {
+            for (CreditData data : creditData) {
+                deleteStudentsStmt.setString(1, data.getStudentID());
+                deleteStudentsStmt.executeUpdate();
+            }
+        }
+    }
+
+    private void updateAccumulatedCredits() throws SQLException {
+        Connection connect = null;
+        try {
+            connect = database.connectDB();
+            connect.setAutoCommit(false); // Bắt đầu transaction để tránh xung đột
+
+            // Bước 1: Tính tổng tín chỉ cho từng sinh viên
+            String selectSql = """
+                    SELECT g.student_id, COALESCE(SUM(c.credits), 0) AS total_credits
+                    FROM grades g
+                    JOIN courses c ON g.course_id = c.course_id
+                    WHERE g.total_grade >= 5.0
+                    GROUP BY g.student_id
+                    """;
+
+            Map<String, Integer> creditMap = new HashMap<>();
+            try (PreparedStatement selectStmt = connect.prepareStatement(selectSql);
+                    ResultSet resultSet = selectStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    creditMap.put(resultSet.getString("student_id"), resultSet.getInt("total_credits"));
+                }
+            }
+
+            // Bước 2: Cập nhật tín chỉ tích lũy vào bảng students
+            String updateSql = "UPDATE students SET credits_accumulated = ? WHERE student_id = ?";
+            try (PreparedStatement updateStmt = connect.prepareStatement(updateSql)) {
+                int rowsAffected = 0;
+                for (Map.Entry<String, Integer> entry : creditMap.entrySet()) {
+                    updateStmt.setInt(1, entry.getValue());
+                    updateStmt.setString(2, entry.getKey());
+                    rowsAffected += updateStmt.executeUpdate();
+                }
+
+                if (rowsAffected > 0) {
+                    AlertComponent.showInformation("Thành công", null,
+                            "Đã cập nhật tín chỉ tích lũy cho " + rowsAffected + " sinh viên!");
+                } else {
+                    AlertComponent.showInformation("Thông báo", null, "Không có tín chỉ nào được cập nhật!");
+                }
+            }
+
+            connect.commit(); // Commit transaction
+        } catch (SQLException e) {
+            if (connect != null) {
+                try {
+                    connect.rollback(); // Rollback nếu có lỗi
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            throw e; // Ném lại ngoại lệ để xử lý ở cấp cao hơn
+        } finally {
+            if (connect != null) {
+                try {
+                    connect.setAutoCommit(true);
+                    connect.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private ObservableList<CreditData> getAccumulatedCredits() throws SQLException {
+        ObservableList<CreditData> creditData = FXCollections.observableArrayList();
+        String sql = """
+                SELECT s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS full_name, s.credits_accumulated
+                FROM students s
+                WHERE s.credits_accumulated > 0
+                """;
+
+        try (Connection connect = database.connectDB();
+                PreparedStatement preparedStatement = connect.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                creditData.add(new CreditData(
+                        resultSet.getString("student_id"),
+                        resultSet.getString("full_name"),
+                        resultSet.getInt("credits_accumulated")));
+            }
+        }
+        return creditData;
+    }
+
+    private void showAccumulatedCredits(ObservableList<CreditData> creditData) {
+        TableView<CreditData> table = new TableView<>();
+        table.setItems(creditData);
+
+        TableColumn<CreditData, String> studentIDCol = new TableColumn<>("MSSV");
+        studentIDCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getStudentID()));
+
+        TableColumn<CreditData, String> fullNameCol = new TableColumn<>("Họ tên");
+        fullNameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFullName()));
+
+        TableColumn<CreditData, Number> creditsCol = new TableColumn<>("Tín chỉ tích lũy");
+        creditsCol.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getCreditsAccumulated()));
+
+        table.getColumns().addAll(studentIDCol, fullNameCol, creditsCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        Stage stage = new Stage();
+        stage.setTitle("Danh sách tín chỉ tích lũy");
+        stage.setScene(new Scene(table, 500, 400));
+        stage.show();
+    }
+
+    private void exportAccumulatedCredits(ObservableList<CreditData> creditData) throws IOException {
+        ChoiceDialog<String> formatDialog = new ChoiceDialog<>("JSON", "JSON", "Excel", "CSV");
+        formatDialog.setTitle("Chọn định dạng file");
+        formatDialog.setHeaderText("Vui lòng chọn định dạng file để xuất tín chỉ tích lũy:");
+        formatDialog.setContentText("Định dạng:");
+
+        Optional<String> formatResult = formatDialog.showAndWait();
+        if (!formatResult.isPresent())
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu file tín chỉ tích lũy");
+        fileChooser.setInitialFileName("TinChiTichLuy_" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        String selectedFormat = formatResult.get();
+
+        switch (selectedFormat) {
+            case "JSON":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+                break;
+            case "Excel":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+                break;
+            case "CSV":
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+                break;
+        }
+        fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            switch (selectedFormat) {
+                case "JSON":
+                    exportCreditsToJson(file, creditData);
+                    break;
+                case "Excel":
+                    exportCreditsToExcel(file, creditData);
+                    break;
+                case "CSV":
+                    exportCreditsToCsv(file, creditData);
+                    break;
+            }
+            AlertComponent.showInformation("Thành công", null, "Đã xuất file thành công: " + file.getName());
+        }
+    }
+
+    private void exportCreditsToJson(File file, ObservableList<CreditData> creditData) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> creditList = creditData.stream().map(data -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("student_id", data.getStudentID());
+            map.put("full_name", data.getFullName());
+            map.put("credits_accumulated", data.getCreditsAccumulated());
+            return map;
+        }).collect(Collectors.toList());
+        objectMapper.writeValue(file, creditList);
+    }
+
+    private void exportCreditsToExcel(File file, ObservableList<CreditData> creditData) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Tín chỉ tích lũy");
+
+        int rowNum = 0;
+        Row headerRow = sheet.createRow(rowNum++);
+        String[] headers = { "MSSV", "Họ tên", "Tín chỉ tích lũy" };
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
+
+        for (CreditData data : creditData) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(data.getStudentID());
+            row.createCell(1).setCellValue(data.getFullName());
+            row.createCell(2).setCellValue(data.getCreditsAccumulated());
+        }
+
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    private void exportCreditsToCsv(File file, ObservableList<CreditData> creditData) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write("MSSV,Họ tên,Tín chỉ tích lũy");
+            writer.newLine();
+
+            for (CreditData data : creditData) {
+                String line = String.format("%s,\"%s\",%d",
+                        data.getStudentID(), data.getFullName(), data.getCreditsAccumulated());
+                writer.write(line);
+                writer.newLine();
             }
         }
     }
